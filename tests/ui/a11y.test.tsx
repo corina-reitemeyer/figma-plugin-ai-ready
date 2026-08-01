@@ -6,6 +6,7 @@ import { axe } from 'vitest-axe'
 import { ConfirmFixDialog } from '../../src/ui/ConfirmFixDialog'
 import { ResultsTabs } from '../../src/ui/ResultsTabs'
 import { ScopePicker } from '../../src/ui/ScopePicker'
+import { StartScreen } from '../../src/ui/StartScreen'
 import { FileContextView } from '../../src/ui/views/FileContextView'
 import { IssuesView } from '../../src/ui/views/IssuesView'
 import { OverviewView } from '../../src/ui/views/OverviewView'
@@ -35,6 +36,29 @@ describe('UI accessibility', () => {
         selectedPageIds={['0:1']}
         onScopeChange={function () {}}
         onPagesChange={function () {}}
+      />
+    )
+    expect(await axe(container, axeOptions)).toHaveNoViolations()
+  })
+
+  it('StartScreen has no axe violations', async () => {
+    const { container } = render(
+      <StartScreen
+        scope="file"
+        pages={[
+          { id: '0:1', name: 'Components' },
+          { id: '0:2', name: 'Foundations' }
+        ]}
+        selectedPageIds={['0:1']}
+        selectionCount={1}
+        scanning={false}
+        canScan={true}
+        progress={null}
+        statusOverride=""
+        onScopeChange={function () {}}
+        onPagesChange={function () {}}
+        onScan={function () {}}
+        onCancel={function () {}}
       />
     )
     expect(await axe(container, axeOptions)).toHaveNoViolations()

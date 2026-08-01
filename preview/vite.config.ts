@@ -1,0 +1,14 @@
+import { defineConfig } from 'vite'
+import { resolve } from 'node:path'
+
+export default defineConfig({
+  root: resolve(__dirname),
+  server: {
+    port: 5173,
+    open: true
+  },
+  esbuild: {
+    jsxFactory: 'h',
+    jsxFragment: 'Fragment'
+  }
+})

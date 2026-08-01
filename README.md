@@ -29,7 +29,7 @@ Figma plugin that audits open-file components for **MCP / agent-readiness** — 
 1. Open a design-system or component library file in **Figma Desktop**.
 2. Run `npm run build`, then Quick Actions → **Import plugin from manifest…** → select repo-root `manifest.json`.
 3. Launch **Agent-Readiness Checker**.
-4. Choose scope: **Current selection**, **Pages**, or **Whole file** → **Run scan**.
+4. Choose scope: **Full file** (default), **Specific pages**, or **Selection / frame / component** → **Scan**. The last scope choice is remembered.
 5. On **Overview**, note overall score / band and top issues; click an issue to select it on the canvas.
 6. Open **Issues**, expand a finding, read Why / Consequence / How to fix.
 7. For a rename or bind-inferred finding, click **Fix** → confirm → verify Undo works.
@@ -39,8 +39,8 @@ Figma plugin that audits open-file components for **MCP / agent-readiness** — 
 
 Run after UI changes (VoiceOver on macOS or NVDA on Windows):
 
-- [ ] Scope radios and page checkboxes are announced with legends.
-- [ ] **Run scan** / **Cancel** are reachable by Tab; Cancel works during a long scan.
+- [ ] Scope select and page checkboxes are announced with labels/legends.
+- [ ] **Scan** / **Cancel** are reachable by Tab; Cancel works during a long scan.
 - [ ] Scan progress updates are announced via the live region (polite).
 - [ ] Results tabs are arrow-key navigable; active tab panel is associated.
 - [ ] Issue **Show details** toggles `aria-expanded`; Fix confirm dialog has a labelled title.

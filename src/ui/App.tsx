@@ -1,25 +1,35 @@
 import { emit, on } from '@create-figma-plugin/utilities'
 import { h } from 'preact'
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 
 import {
   AutofixRequest,
   AutofixRequestHandler,
   AutofixResultHandler,
   CloseRequestHandler,
+  GetPreferencesRequestHandler,
+  GetPreferencesResultHandler,
   ListPagesRequestHandler,
   ListPagesResultHandler,
   PageInfo,
   ScanCancelHandler,
   ScanProgressHandler,
   ScanRequestHandler,
-  ScanResultHandler
+  ScanResultHandler,
+  SelectionStatusHandler,
+  SelectionStatusRequestHandler,
+  SetPreferencesRequestHandler
 } from '../shared/messages'
+import {
+  DEFAULT_SCOPE,
+  resolveSelectedPageIds
+} from '../shared/preferences'
 import { AuditReport, Issue, ScopeKind } from '../shared/types'
+import { Button } from './Button'
 import { ConfirmFixDialog } from './ConfirmFixDialog'
 import { LiveRegion } from './LiveRegion'
 import { ResultsTabId, ResultsTabs } from './ResultsTabs'
-import { ScopePicker } from './ScopePicker'
+import { StartScreen } from './StartScreen'
 import { strings } from './strings'
 import { FileContextView } from './views/FileContextView'
 import { IssuesView } from './views/IssuesView'
@@ -28,11 +38,17 @@ import { OverviewView } from './views/OverviewView'
 type AppState = 'pre-scan' | 'scanning' | 'results'
 
 export function App() {
-  const [scope, setScope] = useState<ScopeKind>('pages')
+  const [scope, setScope] = useState<ScopeKind>(DEFAULT_SCOPE)
   const [pages, setPages] = useState<PageInfo[]>([])
   const [selectedPageIds, setSelectedPageIds] = useState<string[]>([])
+  const [selectionCount, setSelectionCount] = useState(0)
   const [appState, setAppState] = useState<AppState>('pre-scan')
-  const [status, setStatus] = useState<string>(strings.preScanHelp)
+  const [status, setStatus] = useState<string>('')
+  const [progress, setProgress] = useState<{
+    current: number
+    total: number
+    label: string
+  } | null>(null)
   const [report, setReport] = useState<AuditReport | null>(null)
   const [statusPoliteness, setStatusPoliteness] = useState<
     'polite' | 'assertive'
@@ -40,24 +56,143 @@ export function App() {
   const [activeTab, setActiveTab] = useState<ResultsTabId>('overview')
   const [pendingFix, setPendingFix] = useState<Issue | null>(null)
   const [fixBusy, setFixBusy] = useState(false)
+  const preferencesReady = useRef(false)
+  const currentPageIdRef = useRef<string | null>(null)
+  const pagesRef = useRef<PageInfo[]>([])
+  const pendingPreferences = useRef<{
+    scope: ScopeKind
+    selectedPageIds: string[]
+  } | null>(null)
 
-  useEffect(function () {
-    emit<ListPagesRequestHandler>('LIST_PAGES_REQUEST')
-    return on<ListPagesResultHandler>('LIST_PAGES_RESULT', function (payload) {
-      setPages(payload.pages)
-      setSelectedPageIds([payload.currentPageId])
+  const persistPreferences = useCallback(function (
+    nextScope: ScopeKind,
+    nextPageIds: string[]
+  ) {
+    if (!preferencesReady.current) {
+      return
+    }
+    emit<SetPreferencesRequestHandler>('SET_PREFERENCES_REQUEST', {
+      scope: nextScope,
+      selectedPageIds: nextPageIds
     })
   }, [])
 
+  const clearTransientStatus = useCallback(function () {
+    setStatus(function (current) {
+      return current.startsWith('Scan failed') ||
+        current.startsWith('Autofix failed')
+        ? ''
+        : current
+    })
+  }, [])
+
+  const handleScopeChange = useCallback(
+    function (nextScope: ScopeKind) {
+      clearTransientStatus()
+      setScope(nextScope)
+      persistPreferences(nextScope, selectedPageIds)
+    },
+    [clearTransientStatus, persistPreferences, selectedPageIds]
+  )
+
+  const handlePagesChange = useCallback(
+    function (nextPageIds: string[]) {
+      clearTransientStatus()
+      setSelectedPageIds(nextPageIds)
+      persistPreferences(scope, nextPageIds)
+    },
+    [clearTransientStatus, persistPreferences, scope]
+  )
+
   useEffect(function () {
-    return on<ScanProgressHandler>('SCAN_PROGRESS', function (progress) {
+    emit<ListPagesRequestHandler>('LIST_PAGES_REQUEST')
+    emit<GetPreferencesRequestHandler>('GET_PREFERENCES_REQUEST')
+    emit<SelectionStatusRequestHandler>('SELECTION_STATUS_REQUEST')
+
+    function applyPreferences(prefs: {
+      scope: ScopeKind
+      selectedPageIds: string[]
+    }) {
+      const currentPageId = currentPageIdRef.current
+      if (currentPageId === null) {
+        pendingPreferences.current = prefs
+        return
+      }
+      setScope(prefs.scope)
+      setSelectedPageIds(
+        resolveSelectedPageIds(
+          prefs.selectedPageIds,
+          pagesRef.current,
+          currentPageId
+        )
+      )
+      preferencesReady.current = true
+      pendingPreferences.current = null
+    }
+
+    const unsubscribePages = on<ListPagesResultHandler>(
+      'LIST_PAGES_RESULT',
+      function (payload) {
+        pagesRef.current = payload.pages
+        setPages(payload.pages)
+        currentPageIdRef.current = payload.currentPageId
+
+        if (pendingPreferences.current !== null) {
+          applyPreferences(pendingPreferences.current)
+          return
+        }
+
+        // Default / restore page checkboxes once we know the page list.
+        setSelectedPageIds(function (current) {
+          return resolveSelectedPageIds(
+            current,
+            payload.pages,
+            payload.currentPageId
+          )
+        })
+      }
+    )
+
+    const unsubscribePrefs = on<GetPreferencesResultHandler>(
+      'GET_PREFERENCES_RESULT',
+      function (payload) {
+        if (payload.preferences === null) {
+          preferencesReady.current = true
+          return
+        }
+        applyPreferences(payload.preferences)
+      }
+    )
+
+    const unsubscribeSelection = on<SelectionStatusHandler>(
+      'SELECTION_STATUS',
+      function (payload) {
+        setSelectionCount(payload.count)
+      }
+    )
+
+    return function () {
+      unsubscribePages()
+      unsubscribePrefs()
+      unsubscribeSelection()
+    }
+  }, [])
+
+  useEffect(function () {
+    return on<ScanProgressHandler>('SCAN_PROGRESS', function (event) {
       setStatusPoliteness('polite')
-      setStatus(progress.message)
+      setStatus(event.message)
+      setProgress({
+        current: event.current,
+        total: Math.max(event.total, 1),
+        label: event.message
+      })
     })
   }, [])
 
   useEffect(function () {
     return on<ScanResultHandler>('SCAN_RESULT', function (result) {
+      setProgress(null)
       if (result.ok) {
         setReport(result.report)
         setAppState('results')
@@ -82,9 +217,12 @@ export function App() {
       if (scope === 'pages') {
         return selectedPageIds.length > 0
       }
+      if (scope === 'selection') {
+        return selectionCount > 0
+      }
       return true
     },
-    [appState, scope, selectedPageIds]
+    [appState, scope, selectedPageIds, selectionCount]
   )
 
   const handleRun = useCallback(
@@ -93,8 +231,9 @@ export function App() {
       setReport(null)
       setPendingFix(null)
       setFixBusy(false)
+      setProgress({ current: 0, total: 1, label: strings.scanningDesign })
       setStatusPoliteness('polite')
-      setStatus(strings.scanning)
+      setStatus(strings.scanningDesign)
 
       if (scope === 'selection') {
         emit<ScanRequestHandler>('SCAN_REQUEST', { scope: 'selection' })
@@ -171,54 +310,67 @@ export function App() {
   }, [pendingFix])
 
   return (
-    <div className="app">
-      <header>
-        <h1>{strings.appTitle}</h1>
-        {appState !== 'results' ? (
-          <p className="help">{strings.preScanHelp}</p>
-        ) : null}
-      </header>
+    <div className={appState === 'results' ? 'app' : 'app app-start'}>
+      {appState === 'results' ? (
+        <header>
+          <h1>{strings.appTitle}</h1>
+        </header>
+      ) : null}
 
-      <LiveRegion message={status} politeness={statusPoliteness} />
+      {appState === 'results' ? (
+        <LiveRegion message={status} politeness={statusPoliteness} />
+      ) : null}
 
       {appState !== 'results' ? (
-        <ScopePicker
+        <StartScreen
           scope={scope}
           pages={pages}
           selectedPageIds={selectedPageIds}
-          disabled={appState === 'scanning'}
-          onScopeChange={setScope}
-          onPagesChange={setSelectedPageIds}
+          selectionCount={selectionCount}
+          scanning={appState === 'scanning'}
+          canScan={canRun}
+          progress={progress}
+          statusOverride={
+            status.startsWith('Scan failed') || status.startsWith('Autofix failed')
+              ? status
+              : ''
+          }
+          onScopeChange={handleScopeChange}
+          onPagesChange={handlePagesChange}
+          onScan={handleRun}
+          onCancel={function () {
+            emit<ScanCancelHandler>('SCAN_CANCEL')
+          }}
         />
       ) : null}
 
-      <div className="actions">
-        {appState === 'scanning' ? (
-          <button
-            type="button"
-            className="secondary"
+      {appState === 'results' ? (
+        <div className="actions">
+          <Button variant="cta" onClick={handleRun} disabled={!canRun}>
+            {strings.reScan}
+          </Button>
+          <Button
+            variant="outline"
             onClick={function () {
-              emit<ScanCancelHandler>('SCAN_CANCEL')
+              emit<CloseRequestHandler>('CLOSE_REQUEST')
             }}
           >
-            {strings.cancelScan}
-          </button>
-        ) : (
-          <button type="button" onClick={handleRun} disabled={!canRun}>
-            {appState === 'results' ? 'Re-scan' : strings.runScan}
-          </button>
-        )}
-        <button
-          type="button"
-          className="secondary"
-          onClick={function () {
-            emit<CloseRequestHandler>('CLOSE_REQUEST')
-          }}
-          disabled={appState === 'scanning'}
-        >
-          {strings.close}
-        </button>
-      </div>
+            {strings.close}
+          </Button>
+        </div>
+      ) : (
+        <div className="start-close">
+          <Button
+            variant="ghost"
+            onClick={function () {
+              emit<CloseRequestHandler>('CLOSE_REQUEST')
+            }}
+            disabled={appState === 'scanning'}
+          >
+            {strings.close}
+          </Button>
+        </div>
+      )}
 
       {appState === 'results' && report !== null ? (
         <section aria-labelledby="results-heading">

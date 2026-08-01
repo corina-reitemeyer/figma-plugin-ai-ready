@@ -14,6 +14,12 @@ type ScopePickerProps = {
   onPagesChange: (pageIds: string[]) => void
 }
 
+const SCOPE_OPTIONS: Array<{ value: ScopeKind; label: string }> = [
+  { value: 'file', label: strings.scopeFile },
+  { value: 'pages', label: strings.scopePages },
+  { value: 'selection', label: strings.scopeSelection }
+]
+
 export function ScopePicker({
   scope,
   pages,
@@ -24,33 +30,28 @@ export function ScopePicker({
 }: ScopePickerProps) {
   return (
     <div className="scope-picker">
-      <fieldset disabled={disabled}>
-        <legend>{strings.scopeLegend}</legend>
-        {(
-          [
-            ['selection', strings.scopeSelection],
-            ['pages', strings.scopePages],
-            ['file', strings.scopeFile]
-          ] as const
-        ).map(function ([value, label]) {
-          const id = `scope-${value}`
-          return (
-            <label key={value} className="scope-option" htmlFor={id}>
-              <input
-                id={id}
-                type="radio"
-                name="audit-scope"
-                value={value}
-                checked={scope === value}
-                onChange={function () {
-                  onScopeChange(value)
-                }}
-              />
-              <span>{label}</span>
-            </label>
-          )
-        })}
-      </fieldset>
+      <label className="scope-select-label" htmlFor="audit-scope">
+        <span className="scope-select-caption">{strings.scopeLegend}</span>
+        <select
+          id="audit-scope"
+          className="scope-select"
+          value={scope}
+          disabled={disabled}
+          onChange={function (event) {
+            const next = (event.currentTarget as HTMLSelectElement)
+              .value as ScopeKind
+            onScopeChange(next)
+          }}
+        >
+          {SCOPE_OPTIONS.map(function (option) {
+            return (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            )
+          })}
+        </select>
+      </label>
 
       {scope === 'pages' ? (
         <fieldset disabled={disabled} className="pages-fieldset">
@@ -60,7 +61,13 @@ export function ScopePicker({
               const id = `page-${page.id}`
               const checked = selectedPageIds.includes(page.id)
               return (
-                <label key={page.id} className="page-option" htmlFor={id}>
+                <label
+                  key={page.id}
+                  className={
+                    checked ? 'bf-page-row bf-page-row-selected' : 'bf-page-row'
+                  }
+                  htmlFor={id}
+                >
                   <input
                     id={id}
                     type="checkbox"

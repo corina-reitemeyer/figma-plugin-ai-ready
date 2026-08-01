@@ -1,5 +1,9 @@
 import { EventHandler } from '@create-figma-plugin/utilities'
 
+import {
+  parseScanPreferences,
+  ScanPreferences
+} from './preferences'
 import { AutofixId, AuditReport, ScopeRequest } from './types'
 import { isNonEmptyString } from './safeText'
 
@@ -68,6 +72,31 @@ export interface ListPagesRequestHandler extends EventHandler {
 export interface ListPagesResultHandler extends EventHandler {
   name: 'LIST_PAGES_RESULT'
   handler: (payload: { pages: PageInfo[]; currentPageId: string }) => void
+}
+
+export interface GetPreferencesRequestHandler extends EventHandler {
+  name: 'GET_PREFERENCES_REQUEST'
+  handler: () => void
+}
+
+export interface GetPreferencesResultHandler extends EventHandler {
+  name: 'GET_PREFERENCES_RESULT'
+  handler: (payload: { preferences: ScanPreferences | null }) => void
+}
+
+export interface SetPreferencesRequestHandler extends EventHandler {
+  name: 'SET_PREFERENCES_REQUEST'
+  handler: (payload: ScanPreferences) => void
+}
+
+export interface SelectionStatusRequestHandler extends EventHandler {
+  name: 'SELECTION_STATUS_REQUEST'
+  handler: () => void
+}
+
+export interface SelectionStatusHandler extends EventHandler {
+  name: 'SELECTION_STATUS'
+  handler: (payload: { count: number }) => void
 }
 
 // ——— sandbox → UI ———
@@ -216,4 +245,10 @@ export function parseScanRequest(value: unknown): ScanRequest | null {
   }
 
   return null
+}
+
+export function parseSetPreferencesRequest(
+  value: unknown
+): ScanPreferences | null {
+  return parseScanPreferences(value)
 }

@@ -4,28 +4,46 @@ import {
   AutofixRequestHandler,
   AutofixResultHandler,
   CloseRequestHandler,
+  GetPreferencesRequestHandler,
+  GetPreferencesResultHandler,
   ListPagesRequestHandler,
   ListPagesResultHandler,
   parseAutofixRequest,
   parseScanRequest,
   parseSelectNodeRequest,
+  parseSetPreferencesRequest,
   ScanCancelHandler,
   ScanProgressHandler,
   ScanRequestHandler,
   ScanResultHandler,
+  SelectionStatusHandler,
+  SelectionStatusRequestHandler,
   SelectNodeRequestHandler,
-  SelectNodeResultHandler
+  SelectNodeResultHandler,
+  SetPreferencesRequestHandler
 } from '../shared/messages'
 import { safeText } from '../shared/safeText'
 import { applyConfirmedAutofix } from './autofix'
+import {
+  readScanPreferences,
+  writeScanPreferences
+} from './preferencesStorage'
 import { runAudit } from './runAudit'
 import { requestScanCancel } from './scanCancel'
 import { selectAndZoom } from './selectAndZoom'
+
+function emitSelectionStatus(): void {
+  emit<SelectionStatusHandler>('SELECTION_STATUS', {
+    count: figma.currentPage.selection.length
+  })
+}
 
 /**
  * Wires guarded UI ↔ sandbox handlers. Unknown/invalid payloads are ignored or rejected.
  */
 export function registerHandlers(): void {
+  figma.on('selectionchange', emitSelectionStatus)
+
   on<CloseRequestHandler>('CLOSE_REQUEST', function () {
     figma.closePlugin()
   })
@@ -78,6 +96,29 @@ export function registerHandlers(): void {
         currentPageId: figma.currentPage.id
       })
     })()
+  })
+
+  on<GetPreferencesRequestHandler>('GET_PREFERENCES_REQUEST', function () {
+    void (async function () {
+      const preferences = await readScanPreferences()
+      emit<GetPreferencesResultHandler>('GET_PREFERENCES_RESULT', {
+        preferences
+      })
+    })()
+  })
+
+  on<SetPreferencesRequestHandler>('SET_PREFERENCES_REQUEST', function (payload) {
+    void (async function () {
+      const preferences = parseSetPreferencesRequest(payload)
+      if (preferences === null) {
+        return
+      }
+      await writeScanPreferences(preferences)
+    })()
+  })
+
+  on<SelectionStatusRequestHandler>('SELECTION_STATUS_REQUEST', function () {
+    emitSelectionStatus()
   })
 
   on<ScanCancelHandler>('SCAN_CANCEL', function () {

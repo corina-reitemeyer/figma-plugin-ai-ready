@@ -12,6 +12,7 @@ import {
   IconVariants
 } from '../Icon'
 import { SafeText } from '../SafeText'
+import { formatScanScopeLabel } from '../scopeLabel'
 import { strings } from '../strings'
 
 type FileContextViewProps = {
@@ -105,7 +106,9 @@ export function FileContextView({ report }: FileContextViewProps) {
             <IconSearch size={18} />
           </span>
           <span className="file-card-body">
-            <span className="file-card-title">{scopeLabel(report, nodeCount)}</span>
+            <span className="file-card-title">
+              {formatScanScopeLabel(report, nodeCount)}
+            </span>
             <span className="file-card-sub muted">
               {report.inventory.componentCount} components ·{' '}
               {formatRecency(report.scannedAt)} · {report.durationMs}ms
@@ -293,20 +296,6 @@ function aggregateComponentsWithIssues(issues: Issue[]): ComponentIssueRow[] {
     }
     return a.nodeName.localeCompare(b.nodeName)
   })
-}
-
-function scopeLabel(report: AuditReport, nodeCount: number): string {
-  const nodes = `${nodeCount} node${nodeCount === 1 ? '' : 's'}`
-  if (report.scope === 'selection') {
-    return `Selection (${nodes})`
-  }
-  if (report.scope === 'file') {
-    return `Whole file (${nodes})`
-  }
-  const pageCount = report.pageIds.length || report.inventory.pageCount
-  return pageCount === 1
-    ? `1 page (${nodes})`
-    : `${pageCount} pages (${nodes})`
 }
 
 function formatRecency(iso: string): string {

@@ -1,13 +1,8 @@
 import { h, render } from 'preact'
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useState } from 'preact/hooks'
 
-import { ScopeKind } from '../src/shared/types'
 import { Button } from '../src/ui/Button'
 import { ResultsTabId, ResultsTabs } from '../src/ui/ResultsTabs'
-import {
-  ScopeSnapshot,
-  transitionForSelectionChange
-} from '../src/ui/smartScope'
 import { StartScreen } from '../src/ui/StartScreen'
 import { strings } from '../src/ui/strings'
 import { AiView } from '../src/ui/views/AiView'
@@ -18,18 +13,10 @@ import { sampleReport } from '../tests/fixtures/auditReport'
 import '../src/ui/styles.css'
 import './preview.css'
 
-const SAMPLE_PAGES = [
-  { id: '0:1', name: 'Components' },
-  { id: '0:2', name: 'Foundations' },
-  { id: '0:3', name: 'Patterns' }
-]
-
 type PreviewMode = 'start' | 'overview'
 
 function PreviewApp() {
   const [mode, setMode] = useState<PreviewMode>('overview')
-  const [scope, setScope] = useState<ScopeKind>('selection')
-  const [selectedPageIds, setSelectedPageIds] = useState<string[]>(['0:1'])
   const [selectionCount, setSelectionCount] = useState(3)
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState<{
@@ -39,43 +26,8 @@ function PreviewApp() {
   } | null>(null)
   const [activeTab, setActiveTab] = useState<ResultsTabId>('aiView')
   const [lastScan, setLastScan] = useState('—')
-  const previousSelectionCount = useRef(selectionCount)
-  const scopeRef = useRef(scope)
-  const selectedPageIdsRef = useRef(selectedPageIds)
-  const fallbackRef = useRef<ScopeSnapshot>({
-    scope: 'pages',
-    selectedPageIds: ['0:1']
-  })
-  scopeRef.current = scope
-  selectedPageIdsRef.current = selectedPageIds
 
-  useEffect(
-    function () {
-      const transition = transitionForSelectionChange({
-        previousCount: previousSelectionCount.current,
-        nextCount: selectionCount,
-        scope: scopeRef.current,
-        selectedPageIds: selectedPageIdsRef.current,
-        fallback: fallbackRef.current,
-        currentPageId: '0:1',
-        pages: SAMPLE_PAGES
-      })
-      previousSelectionCount.current = selectionCount
-      if (transition === null) {
-        return
-      }
-      fallbackRef.current = transition.fallback
-      setScope(transition.scope)
-      setSelectedPageIds(transition.selectedPageIds)
-    },
-    [selectionCount]
-  )
-
-  const canScan =
-    !scanning &&
-    (scope === 'file' ||
-      (scope === 'pages' && selectedPageIds.length > 0) ||
-      (scope === 'selection' && selectionCount > 0))
+  const canScan = !scanning
 
   return (
     <div className="preview-shell">
@@ -147,41 +99,13 @@ function PreviewApp() {
         {mode === 'start' ? (
           <div className="app app-start">
             <StartScreen
-              scope={scope}
-              pages={SAMPLE_PAGES}
-              selectedPageIds={selectedPageIds}
               selectionCount={selectionCount}
-              primaryName={
-                selectionCount === 0
-                  ? ''
-                  : selectionCount === 1
-                    ? 'Checkout'
-                    : 'Checkout'
-              }
+              primaryName={selectionCount === 0 ? '' : 'Checkout'}
               scanning={scanning}
               canScan={canScan}
               progress={progress}
-              onScopeChange={function (next) {
-                setScope(next)
-                if (next !== 'selection') {
-                  fallbackRef.current = {
-                    scope: next,
-                    selectedPageIds
-                  }
-                }
-              }}
-              onPagesChange={function (next) {
-                setSelectedPageIds(next)
-                if (scope !== 'selection') {
-                  fallbackRef.current = { scope, selectedPageIds: next }
-                }
-              }}
               onScan={function () {
-                setLastScan(
-                  scope === 'pages'
-                    ? `pages:${selectedPageIds.join(',')}`
-                    : scope
-                )
+                setLastScan(selectionCount > 0 ? 'selection' : 'file')
                 setScanning(true)
                 setProgress({
                   current: 1,

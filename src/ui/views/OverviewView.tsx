@@ -11,6 +11,7 @@ import {
 import { CategoryIcon, labelCategory } from '../CategoryIcon'
 import { IconChevronRight, IconHexagon } from '../Icon'
 import { SafeText } from '../SafeText'
+import { formatScanScopeLabel } from '../scopeLabel'
 import { strings } from '../strings'
 
 type OverviewViewProps = {
@@ -43,8 +44,9 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
         <p className={`band-label band-${report.band}`}>{bandLabel}</p>
         <p className="score-caption">{strings.scoreCaption}</p>
         <p className="score-meta muted">
-          {scopeLabel(report, nodeCount)} · {report.inventory.componentCount}{' '}
-          components · {formatRecency(report.scannedAt)}
+          {formatScanScopeLabel(report, nodeCount)} ·{' '}
+          {report.inventory.componentCount} components ·{' '}
+          {formatRecency(report.scannedAt)}
         </p>
       </div>
 
@@ -214,20 +216,6 @@ function bandFor(score: number): ScoreBand {
   if (score >= 90) return 'good'
   if (score >= 50) return 'needsWork'
   return 'poor'
-}
-
-function scopeLabel(report: AuditReport, nodeCount: number): string {
-  const nodes = `${nodeCount} node${nodeCount === 1 ? '' : 's'}`
-  if (report.scope === 'selection') {
-    return `Selection (${nodes})`
-  }
-  if (report.scope === 'file') {
-    return `Whole file (${nodes})`
-  }
-  const pageCount = report.pageIds.length || report.inventory.pageCount
-  return pageCount === 1
-    ? `1 page (${nodes})`
-    : `${pageCount} pages (${nodes})`
 }
 
 function formatRecency(iso: string): string {

@@ -1,64 +1,71 @@
 import { h } from 'preact'
 
-import { PageInfo } from '../shared/messages'
-import { ScopeKind } from '../shared/types'
+import { safeText } from '../shared/safeText'
 import { Button } from './Button'
 import { IconSearch, IconSparkles } from './Icon'
-import { ScopePicker } from './ScopePicker'
-import { scanButtonLabel, statusMessageForScope } from './smartScope'
 import { strings } from './strings'
 
 type StartScreenProps = {
-  scope: ScopeKind
-  pages: PageInfo[]
-  selectedPageIds: string[]
   selectionCount: number
   primaryName?: string
   scanning: boolean
   canScan: boolean
   progress?: { current: number; total: number; label: string } | null
   statusOverride?: string
-  onScopeChange: (scope: ScopeKind) => void
-  onPagesChange: (pageIds: string[]) => void
   onScan: () => void
   onCancel: () => void
 }
 
+function statusMessage(selectionCount: number, primaryName: string): string {
+  if (selectionCount === 0) {
+    return strings.statusReadyFile
+  }
+  if (selectionCount === 1 && primaryName.length > 0) {
+    return strings.statusReadyNamedLayer.replace('{name}', primaryName)
+  }
+  if (selectionCount > 1 && primaryName.length > 0) {
+    return strings.statusReadyNamedLayersMore
+      .replace('{name}', primaryName)
+      .replace('{n}', String(selectionCount - 1))
+  }
+  if (selectionCount === 1) {
+    return strings.statusReadyOneLayer
+  }
+  return strings.statusReadyLayers.replace('{count}', String(selectionCount))
+}
+
+function scanButtonLabel(selectionCount: number, primaryName: string): string {
+  if (selectionCount === 0) {
+    return strings.runScanFile
+  }
+  if (primaryName.length > 0 && selectionCount === 1) {
+    return strings.runScanNamed.replace('{name}', primaryName)
+  }
+  if (primaryName.length > 0) {
+    return strings.runScanNamed.replace('{name}', primaryName)
+  }
+  return strings.runScanSelection
+}
+
 export function StartScreen({
-  scope,
-  pages,
-  selectedPageIds,
   selectionCount,
   primaryName = '',
   scanning,
   canScan,
   progress = null,
   statusOverride = '',
-  onScopeChange,
-  onPagesChange,
   onScan,
   onCancel
 }: StartScreenProps) {
+  const name = safeText(primaryName)
   const message =
     statusOverride.trim().length > 0
       ? statusOverride
       : scanning
         ? strings.scanningDesign
-        : statusMessageForScope({
-            scope,
-            selectionCount,
-            primaryName,
-            selectedPageIds,
-            pages
-          })
+        : statusMessage(selectionCount, name)
 
-  const buttonLabel = scanButtonLabel({
-    scope,
-    selectionCount,
-    primaryName,
-    selectedPageIds,
-    pages
-  })
+  const buttonLabel = scanButtonLabel(selectionCount, name)
 
   return (
     <div className="start-screen">
@@ -99,15 +106,6 @@ export function StartScreen({
           </div>
         ) : (
           <div className="start-controls">
-            <ScopePicker
-              scope={scope}
-              pages={pages}
-              selectedPageIds={selectedPageIds}
-              selectionCount={selectionCount}
-              disabled={scanning}
-              onScopeChange={onScopeChange}
-              onPagesChange={onPagesChange}
-            />
             <Button
               variant="cta"
               fullWidth

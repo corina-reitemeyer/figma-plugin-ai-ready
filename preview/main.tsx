@@ -3,7 +3,14 @@ import { useState } from 'preact/hooks'
 
 import { ScopeKind } from '../src/shared/types'
 import { Button } from '../src/ui/Button'
+import { ResultsTabId, ResultsTabs } from '../src/ui/ResultsTabs'
 import { StartScreen } from '../src/ui/StartScreen'
+import { strings } from '../src/ui/strings'
+import { AiView } from '../src/ui/views/AiView'
+import { FileContextView } from '../src/ui/views/FileContextView'
+import { IssuesView } from '../src/ui/views/IssuesView'
+import { OverviewView } from '../src/ui/views/OverviewView'
+import { sampleReport } from '../tests/fixtures/auditReport'
 import '../src/ui/styles.css'
 import './preview.css'
 
@@ -13,16 +20,20 @@ const SAMPLE_PAGES = [
   { id: '0:3', name: 'Patterns' }
 ]
 
+type PreviewMode = 'start' | 'overview'
+
 function PreviewApp() {
-  const [scope, setScope] = useState<ScopeKind>('file')
+  const [mode, setMode] = useState<PreviewMode>('overview')
+  const [scope, setScope] = useState<ScopeKind>('selection')
   const [selectedPageIds, setSelectedPageIds] = useState<string[]>(['0:1'])
-  const [selectionCount, setSelectionCount] = useState(1)
+  const [selectionCount, setSelectionCount] = useState(3)
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState<{
     current: number
     total: number
     label: string
   } | null>(null)
+  const [activeTab, setActiveTab] = useState<ResultsTabId>('overview')
   const [lastScan, setLastScan] = useState('—')
 
   const canScan =
@@ -34,44 +45,63 @@ function PreviewApp() {
   return (
     <div className="preview-shell">
       <aside className="preview-controls">
-        <h1>Start screen preview</h1>
+        <h1>Plugin UI preview</h1>
         <p>
-          Plugin frame is 420×640 — matching the lint-checker UI. Scope selector
-          + Scan keep the new behavior; visuals come from that theme.
+          Plugin frame is 420×640. Toggle between the start screen and the
+          post-scan Overview draft.
         </p>
 
         <label>
-          Canvas selection count
-          <input
-            type="range"
-            min={0}
-            max={5}
-            value={selectionCount}
-            onInput={function (event) {
-              setSelectionCount(
-                Number((event.currentTarget as HTMLInputElement).value)
+          Screen
+          <select
+            value={mode}
+            onChange={function (event) {
+              setMode(
+                (event.currentTarget as HTMLSelectElement).value as PreviewMode
               )
             }}
-          />
-          <span>{selectionCount}</span>
+          >
+            <option value="overview">Overview (results)</option>
+            <option value="start">Start screen</option>
+          </select>
         </label>
 
-        <label className="preview-check">
-          <input
-            type="checkbox"
-            checked={scanning}
-            onChange={function (event) {
-              const next = (event.currentTarget as HTMLInputElement).checked
-              setScanning(next)
-              setProgress(
-                next
-                  ? { current: 2, total: 5, label: 'Scanning page 2 of 5…' }
-                  : null
-              )
-            }}
-          />
-          Simulate scanning
-        </label>
+        {mode === 'start' ? (
+          <label>
+            Canvas selection count
+            <input
+              type="range"
+              min={0}
+              max={5}
+              value={selectionCount}
+              onInput={function (event) {
+                setSelectionCount(
+                  Number((event.currentTarget as HTMLInputElement).value)
+                )
+              }}
+            />
+            <span>{selectionCount}</span>
+          </label>
+        ) : null}
+
+        {mode === 'start' ? (
+          <label className="preview-check">
+            <input
+              type="checkbox"
+              checked={scanning}
+              onChange={function (event) {
+                const next = (event.currentTarget as HTMLInputElement).checked
+                setScanning(next)
+                setProgress(
+                  next
+                    ? { current: 2, total: 5, label: 'Scanning page 2 of 5…' }
+                    : null
+                )
+              }}
+            />
+            Simulate scanning
+          </label>
+        ) : null}
 
         <p className="preview-meta">
           Last scan action: <strong>{lastScan}</strong>
@@ -79,53 +109,106 @@ function PreviewApp() {
       </aside>
 
       <div className="preview-frame" aria-label="Plugin UI frame">
-        <div className="app app-start">
-          <StartScreen
-            scope={scope}
-            pages={SAMPLE_PAGES}
-            selectedPageIds={selectedPageIds}
-            selectionCount={selectionCount}
-            scanning={scanning}
-            canScan={canScan}
-            progress={progress}
-            onScopeChange={setScope}
-            onPagesChange={setSelectedPageIds}
-            onScan={function () {
-              setLastScan(
-                scope === 'pages'
-                  ? `pages:${selectedPageIds.join(',')}`
-                  : scope
-              )
-              setScanning(true)
-              setProgress({
-                current: 1,
-                total: 4,
-                label: 'Scanning your design…'
-              })
-              window.setTimeout(function () {
+        {mode === 'start' ? (
+          <div className="app app-start">
+            <StartScreen
+              scope={scope}
+              pages={SAMPLE_PAGES}
+              selectedPageIds={selectedPageIds}
+              selectionCount={selectionCount}
+              scanning={scanning}
+              canScan={canScan}
+              progress={progress}
+              onScopeChange={setScope}
+              onPagesChange={setSelectedPageIds}
+              onScan={function () {
+                setLastScan(
+                  scope === 'pages'
+                    ? `pages:${selectedPageIds.join(',')}`
+                    : scope
+                )
+                setScanning(true)
                 setProgress({
-                  current: 3,
+                  current: 1,
                   total: 4,
-                  label: 'Running rules…'
+                  label: 'Scanning your design…'
                 })
-              }, 500)
-              window.setTimeout(function () {
+                window.setTimeout(function () {
+                  setProgress({
+                    current: 3,
+                    total: 4,
+                    label: 'Running rules…'
+                  })
+                }, 500)
+                window.setTimeout(function () {
+                  setScanning(false)
+                  setProgress(null)
+                  setMode('overview')
+                  setActiveTab('overview')
+                }, 1400)
+              }}
+              onCancel={function () {
                 setScanning(false)
                 setProgress(null)
-              }, 1400)
-            }}
-            onCancel={function () {
-              setScanning(false)
-              setProgress(null)
-              setLastScan('cancelled')
-            }}
-          />
-          <div className="start-close">
-            <Button variant="ghost" onClick={function () {}}>
-              Close
-            </Button>
+                setLastScan('cancelled')
+              }}
+            />
+            <div className="start-close">
+              <Button variant="ghost" onClick={function () {}}>
+                Close
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="app app-results">
+            <section
+              className="results-shell"
+              aria-label={strings.resultsHeading}
+            >
+              <ResultsTabs
+                activeTab={activeTab}
+                onActiveTabChange={setActiveTab}
+                onRefresh={function () {
+                  setLastScan('re-scan')
+                }}
+                tabs={[
+                  {
+                    id: 'overview',
+                    label: strings.tabOverview,
+                    panel: (
+                      <OverviewView
+                        report={sampleReport}
+                        onOpenIssues={function () {
+                          setActiveTab('issues')
+                        }}
+                      />
+                    )
+                  },
+                  {
+                    id: 'issues',
+                    label: strings.tabIssues,
+                    panel: (
+                      <IssuesView
+                        report={sampleReport}
+                        onRequestFix={function () {}}
+                      />
+                    )
+                  },
+                  {
+                    id: 'aiView',
+                    label: strings.tabAiView,
+                    panel: <AiView />
+                  },
+                  {
+                    id: 'fileContext',
+                    label: strings.tabFileContext,
+                    panel: <FileContextView report={sampleReport} />
+                  }
+                ]}
+              />
+            </section>
+          </div>
+        )}
       </div>
     </div>
   )

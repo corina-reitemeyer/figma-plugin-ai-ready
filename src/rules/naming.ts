@@ -6,7 +6,7 @@ const RULE_ID = 'naming'
 
 export const namingRule: Rule = {
   id: RULE_ID,
-  label: 'Naming convention',
+  label: 'Clear names',
   category: 'naming',
   targetTypes: ['COMPONENT', 'COMPONENT_SET'],
   severity: 'warning',

@@ -128,6 +128,8 @@ export interface InventorySummary {
   componentSetCount: number
   frameCount: number
   pageCount: number
+  /** Nodes included in this scan (components, sets, frames, groups, instances). */
+  nodeCount: number
   pages: InventoryPageRow[]
   /** Optional v1 taste; full Values scope is v2. */
   variableCount?: number

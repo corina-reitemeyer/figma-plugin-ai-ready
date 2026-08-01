@@ -31,6 +31,7 @@ import { LiveRegion } from './LiveRegion'
 import { ResultsTabId, ResultsTabs } from './ResultsTabs'
 import { StartScreen } from './StartScreen'
 import { strings } from './strings'
+import { AiView } from './views/AiView'
 import { FileContextView } from './views/FileContextView'
 import { IssuesView } from './views/IssuesView'
 import { OverviewView } from './views/OverviewView'
@@ -310,13 +311,7 @@ export function App() {
   }, [pendingFix])
 
   return (
-    <div className={appState === 'results' ? 'app' : 'app app-start'}>
-      {appState === 'results' ? (
-        <header>
-          <h1>{strings.appTitle}</h1>
-        </header>
-      ) : null}
-
+    <div className={appState === 'results' ? 'app app-results' : 'app app-start'}>
       {appState === 'results' ? (
         <LiveRegion message={status} politeness={statusPoliteness} />
       ) : null}
@@ -344,21 +339,7 @@ export function App() {
         />
       ) : null}
 
-      {appState === 'results' ? (
-        <div className="actions">
-          <Button variant="cta" onClick={handleRun} disabled={!canRun}>
-            {strings.reScan}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={function () {
-              emit<CloseRequestHandler>('CLOSE_REQUEST')
-            }}
-          >
-            {strings.close}
-          </Button>
-        </div>
-      ) : (
+      {appState !== 'results' ? (
         <div className="start-close">
           <Button
             variant="ghost"
@@ -370,14 +351,15 @@ export function App() {
             {strings.close}
           </Button>
         </div>
-      )}
+      ) : null}
 
       {appState === 'results' && report !== null ? (
-        <section aria-labelledby="results-heading">
-          <h2 id="results-heading">{strings.resultsHeading}</h2>
+        <section className="results-shell" aria-label={strings.resultsHeading}>
           <ResultsTabs
             activeTab={activeTab}
             onActiveTabChange={setActiveTab}
+            onRefresh={handleRun}
+            refreshDisabled={!canRun}
             tabs={[
               {
                 id: 'overview',
@@ -402,6 +384,11 @@ export function App() {
                     }}
                   />
                 )
+              },
+              {
+                id: 'aiView',
+                label: strings.tabAiView,
+                panel: <AiView />
               },
               {
                 id: 'fileContext',

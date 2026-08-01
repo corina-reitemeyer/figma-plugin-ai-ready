@@ -78,6 +78,7 @@ export function buildInventory(
     componentSetCount,
     frameCount,
     pageCount: pages.length,
+    nodeCount: targets.length,
     pages
   }
 }

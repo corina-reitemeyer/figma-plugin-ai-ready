@@ -58,3 +58,56 @@ export function IconRefresh(props: IconProps) {
     </Svg>
   )
 }
+
+export function IconChevronRight(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M9 6l6 6-6 6" />
+    </Svg>
+  )
+}
+
+/** Flat-top hexagon with a solid center dot (variables / tokens). */
+export function IconHexagon(props: IconProps) {
+  return (
+    <Svg {...props} strokeWidth={props.strokeWidth ?? 2.25}>
+      <path d="M7 3.75h10l4.5 8.25L17 20.25H7L2.5 12Z" />
+      <circle cx="12" cy="12" r="1.75" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}
+
+/** Rounded hash mark (naming). */
+export function IconHash(props: IconProps) {
+  return (
+    <Svg {...props} strokeWidth={props.strokeWidth ?? 2.25}>
+      <path d="M9.25 4.5 7.5 19.5" />
+      <path d="M16.5 4.5 14.75 19.5" />
+      <path d="M5 9.25h14.5" />
+      <path d="M4.25 14.75h14.5" />
+    </Svg>
+  )
+}
+
+/** Four squares rotated 45° into a diamond cluster (variants). */
+export function IconVariants({
+  size = 18,
+  color = 'currentColor'
+}: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <g fill={color} transform="rotate(45 12 12)">
+        <rect x="5" y="5" width="6.25" height="6.25" rx="0.5" />
+        <rect x="12.75" y="5" width="6.25" height="6.25" rx="0.5" />
+        <rect x="5" y="12.75" width="6.25" height="6.25" rx="0.5" />
+        <rect x="12.75" y="12.75" width="6.25" height="6.25" rx="0.5" />
+      </g>
+    </svg>
+  )
+}

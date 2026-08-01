@@ -1,9 +1,10 @@
 import { ComponentChildren, h, JSX } from 'preact'
 import { useEffect, useId, useRef } from 'preact/hooks'
 
+import { IconRefresh } from './Icon'
 import { strings } from './strings'
 
-export type ResultsTabId = 'overview' | 'issues' | 'fileContext'
+export type ResultsTabId = 'overview' | 'issues' | 'aiView' | 'fileContext'
 
 type TabSpec = {
   id: ResultsTabId
@@ -15,12 +16,16 @@ type ResultsTabsProps = {
   tabs: TabSpec[]
   activeTab: ResultsTabId
   onActiveTabChange: (tab: ResultsTabId) => void
+  onRefresh?: () => void
+  refreshDisabled?: boolean
 }
 
 export function ResultsTabs({
   tabs,
   activeTab,
-  onActiveTabChange
+  onActiveTabChange,
+  onRefresh,
+  refreshDisabled = false
 }: ResultsTabsProps) {
   const baseId = useId()
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -71,34 +76,48 @@ export function ResultsTabs({
 
   return (
     <div className="results-tabs">
-      <div role="tablist" aria-label={strings.resultsHeading}>
-        {tabs.map(function (tab, index) {
-          const selected = tab.id === activeTab
-          const tabId = `${baseId}-tab-${tab.id}`
-          const panelId = `${baseId}-panel-${tab.id}`
-          return (
-            <button
-              key={tab.id}
-              id={tabId}
-              ref={function (element) {
-                tabRefs.current[index] = element
-              }}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={panelId}
-              tabIndex={selected ? 0 : -1}
-              onClick={function () {
-                onActiveTabChange(tab.id)
-              }}
-              onKeyDown={function (event) {
-                onKeyDown(event, index)
-              }}
-            >
-              {tab.label}
-            </button>
-          )
-        })}
+      <div className="results-tabbar">
+        <div role="tablist" aria-label={strings.resultsHeading}>
+          {tabs.map(function (tab, index) {
+            const selected = tab.id === activeTab
+            const tabId = `${baseId}-tab-${tab.id}`
+            const panelId = `${baseId}-panel-${tab.id}`
+            return (
+              <button
+                key={tab.id}
+                id={tabId}
+                ref={function (element) {
+                  tabRefs.current[index] = element
+                }}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                aria-controls={panelId}
+                tabIndex={selected ? 0 : -1}
+                onClick={function () {
+                  onActiveTabChange(tab.id)
+                }}
+                onKeyDown={function (event) {
+                  onKeyDown(event, index)
+                }}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+        {onRefresh !== undefined ? (
+          <button
+            type="button"
+            className="results-refresh"
+            onClick={onRefresh}
+            disabled={refreshDisabled}
+            aria-label={strings.reScan}
+            title={strings.reScan}
+          >
+            <IconRefresh size={16} />
+          </button>
+        ) : null}
       </div>
       {tabs.map(function (tab) {
         const selected = tab.id === activeTab

@@ -36,7 +36,7 @@ function comboKey(combo: Record<string, string>): string {
 
 export const variantCompletenessRule: Rule = {
   id: RULE_ID,
-  label: 'Variant matrix completeness',
+  label: 'Missing variants',
   category: 'variants',
   targetTypes: ['COMPONENT_SET'],
   severity: 'warning',

@@ -1,24 +1,42 @@
 import { emit } from '@create-figma-plugin/utilities'
-import { Fragment, h } from 'preact'
+import { h } from 'preact'
 
 import { SelectNodeRequestHandler } from '../../shared/messages'
-import { AuditReport, SCORE_BAND_LABELS } from '../../shared/types'
+import {
+  AuditReport,
+  Issue,
+  RuleCategory,
+  SCORE_BAND_LABELS,
+  ScoreBand
+} from '../../shared/types'
+import {
+  IconChevronRight,
+  IconHash,
+  IconHexagon,
+  IconVariants
+} from '../Icon'
 import { SafeText } from '../SafeText'
+import { strings } from '../strings'
 
 type OverviewViewProps = {
   report: AuditReport
   onOpenIssues: () => void
 }
 
+const RING_SIZE = 128
+const RING_STROKE = 10
+const CAT_RING_SIZE = 52
+const CAT_RING_STROKE = 5
+
 export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
   const topIssues = report.issues.slice(0, 5)
   const bandLabel = SCORE_BAND_LABELS[report.band]
-  const scopeLabel =
-    report.scope === 'selection'
-      ? 'Selection scan'
-      : report.scope === 'file'
-        ? 'Whole-file scan'
-        : 'Page scan'
+  const unusedCount = report.inventory.unusedVariableCount ?? 0
+  const nodeCount =
+    report.inventory.nodeCount ??
+    report.inventory.componentCount +
+      report.inventory.componentSetCount +
+      report.inventory.frameCount
 
   return (
     <div className="overview">
@@ -26,64 +44,59 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
         className="score-hero"
         aria-label={`Overall score ${report.overallScore}, ${bandLabel}`}
       >
-        <div className={`score-number band-${report.band}`}>
-          {report.overallScore}
-        </div>
-        <div className="score-meta">
-          <p className={`band-label band-${report.band}`}>{bandLabel}</p>
-          <p className="muted">
-            {scopeLabel} · {report.inventory.componentCount} components ·{' '}
-            {formatRecency(report.scannedAt)}
-          </p>
-        </div>
+        <ScoreRing score={report.overallScore} band={report.band} size={RING_SIZE} stroke={RING_STROKE} />
+        <p className={`band-label band-${report.band}`}>{bandLabel}</p>
+        <p className="score-caption">{strings.scoreCaption}</p>
+        <p className="score-meta muted">
+          {scopeLabel(report, nodeCount)} · {report.inventory.componentCount}{' '}
+          components · {formatRecency(report.scannedAt)}
+        </p>
       </div>
 
       <p className="counts" aria-label="Pass and issue breakdown">
-        <span>{report.passedChecks} passed</span>
-        <span aria-hidden="true"> · </span>
-        <span>{report.issues.length} issues</span>
-        <span aria-hidden="true"> · </span>
-        <span>
-          {report.issueCounts.error} errors, {report.issueCounts.warning}{' '}
-          warnings
+        <span className="count-passed">{report.passedChecks} Passed</span>
+        <span className="count-warning">
+          {report.issueCounts.warning} Warnings
         </span>
-        {report.naChecks > 0 ? (
-          <Fragment>
-            <span aria-hidden="true"> · </span>
-            <span>{report.naChecks} N/A</span>
-          </Fragment>
-        ) : null}
+        <span className="count-error">{report.issueCounts.error} Errors</span>
       </p>
 
-      <h3 className="section-title">Categories</h3>
-      <ul className="category-list">
+      <ul className="category-gauges" aria-label="Category scores">
         {report.categories.map(function (category) {
+          const band = bandFor(category.score)
           return (
-            <li key={category.category}>
-              <div className="category-row">
-                <span className="category-name">
-                  {labelCategory(category.category)}
-                </span>
-                <span
-                  className={`category-score band-${bandFor(category.score)}`}
-                >
-                  {category.score}
-                </span>
-              </div>
-              <div
-                className="category-bar"
-                role="meter"
-                aria-label={`${labelCategory(category.category)} score ${category.score}`}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={category.score}
-              >
-                <span style={{ width: `${category.score}%` }} />
-              </div>
+            <li key={category.category} className="category-gauge">
+              <ScoreRing
+                score={category.score}
+                band={band}
+                size={CAT_RING_SIZE}
+                stroke={CAT_RING_STROKE}
+                compact
+              />
+              <span className="category-gauge-label">
+                {labelCategory(category.category)}
+              </span>
             </li>
           )
         })}
       </ul>
+
+      {unusedCount > 0 ? (
+        <button type="button" className="feature-card" onClick={onOpenIssues}>
+          <span className="feature-card-icon" aria-hidden="true">
+            <IconHexagon size={20} />
+          </span>
+          <span className="feature-card-body">
+            <span className="feature-card-title">
+              Unused variables · ({unusedCount})
+            </span>
+            <span className="feature-card-sub muted">
+              Set up in this file but not used here.
+            </span>
+          </span>
+          <IconChevronRight size={16} color="var(--muted-gray)" />
+        </button>
+      ) : null}
 
       <h3 className="section-title">Top issues</h3>
       {topIssues.length === 0 ? (
@@ -93,29 +106,117 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
           {topIssues.map(function (issue) {
             return (
               <li key={issue.id}>
-                <button
-                  type="button"
-                  className="issue-link"
-                  onClick={function () {
-                    emit<SelectNodeRequestHandler>('SELECT_NODE_REQUEST', {
-                      nodeId: issue.nodeId
-                    })
-                  }}
-                >
-                  <span className={`severity severity-${issue.severity}`}>
-                    {issue.severity}
-                  </span>
-                  <SafeText value={issue.message} />
-                </button>
+                <IssueCard issue={issue} />
               </li>
             )
           })}
         </ul>
       )}
 
-      <button type="button" className="text-button" onClick={onOpenIssues}>
-        View all {report.issues.length} issues
-      </button>
+      {report.issues.length > 0 ? (
+        <button
+          type="button"
+          className="bf-btn bf-btn-outline view-all-btn"
+          onClick={onOpenIssues}
+        >
+          View all {report.issues.length} issues
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+function IssueCard({ issue }: { issue: Issue }) {
+  return (
+    <button
+      type="button"
+      className="issue-card"
+      onClick={function () {
+        emit<SelectNodeRequestHandler>('SELECT_NODE_REQUEST', {
+          nodeId: issue.nodeId
+        })
+      }}
+    >
+      <span
+        className={`issue-card-icon cat-${issue.category}`}
+        aria-hidden="true"
+      >
+        <CategoryIcon category={issue.category} />
+      </span>
+      <span className="issue-card-body">
+        <span className="issue-card-title">
+          <SafeText value={issue.ruleLabel} />
+        </span>
+        <span className="issue-card-sub muted">
+          <SafeText value={issue.message} />
+        </span>
+      </span>
+      <IconChevronRight size={16} color="var(--muted-gray)" />
+    </button>
+  )
+}
+
+function CategoryIcon({ category }: { category: RuleCategory }) {
+  switch (category) {
+    case 'variants':
+      return <IconVariants size={18} />
+    case 'naming':
+      return <IconHash size={18} />
+    case 'tokens':
+      return <IconHexagon size={18} />
+    default:
+      return <IconHash size={18} />
+  }
+}
+
+function ScoreRing({
+  score,
+  band,
+  size,
+  stroke,
+  compact = false
+}: {
+  score: number
+  band: ScoreBand
+  size: number
+  stroke: number
+  compact?: boolean
+}) {
+  const radius = (size - stroke) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference
+  const center = size / 2
+
+  return (
+    <div
+      className={`score-ring band-${band}${compact ? ' score-ring-compact' : ''}`}
+      style={{ width: size, height: size }}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        aria-hidden="true"
+      >
+        <circle
+          className="score-ring-track"
+          cx={center}
+          cy={center}
+          r={radius}
+          stroke-width={stroke}
+        />
+        <circle
+          className="score-ring-progress"
+          cx={center}
+          cy={center}
+          r={radius}
+          stroke-width={stroke}
+          stroke-dasharray={String(circumference)}
+          stroke-dashoffset={String(offset)}
+          transform={`rotate(-90 ${center} ${center})`}
+        />
+      </svg>
+      <span className="score-number">{score}</span>
     </div>
   )
 }
@@ -125,22 +226,36 @@ function labelCategory(category: string): string {
     case 'naming':
       return 'Naming'
     case 'tokens':
-      return 'Tokens'
+      return 'Variables'
     case 'variants':
       return 'Variants'
     case 'structure':
       return 'Structure'
     case 'docs':
-      return 'Docs & Publish'
+      return 'Docs'
     default:
       return category
   }
 }
 
-function bandFor(score: number): string {
+function bandFor(score: number): ScoreBand {
   if (score >= 90) return 'good'
   if (score >= 50) return 'needsWork'
   return 'poor'
+}
+
+function scopeLabel(report: AuditReport, nodeCount: number): string {
+  const nodes = `${nodeCount} node${nodeCount === 1 ? '' : 's'}`
+  if (report.scope === 'selection') {
+    return `Selection (${nodes})`
+  }
+  if (report.scope === 'file') {
+    return `Whole file (${nodes})`
+  }
+  const pageCount = report.pageIds.length || report.inventory.pageCount
+  return pageCount === 1
+    ? `1 page (${nodes})`
+    : `${pageCount} pages (${nodes})`
 }
 
 function formatRecency(iso: string): string {

@@ -7,6 +7,7 @@ import { ConfirmFixDialog } from '../../src/ui/ConfirmFixDialog'
 import { ResultsTabs } from '../../src/ui/ResultsTabs'
 import { ScopePicker } from '../../src/ui/ScopePicker'
 import { StartScreen } from '../../src/ui/StartScreen'
+import { AiView } from '../../src/ui/views/AiView'
 import { FileContextView } from '../../src/ui/views/FileContextView'
 import { IssuesView } from '../../src/ui/views/IssuesView'
 import { OverviewView } from '../../src/ui/views/OverviewView'
@@ -72,12 +73,14 @@ describe('UI accessibility', () => {
         tabs={[
           { id: 'overview', label: 'Overview', panel: <p>Overview panel</p> },
           { id: 'issues', label: 'Issues', panel: <p>Issues panel</p> },
+          { id: 'aiView', label: 'AI view', panel: <p>AI view panel</p> },
           {
             id: 'fileContext',
-            label: 'File context',
-            panel: <p>File context panel</p>
+            label: 'File',
+            panel: <p>File panel</p>
           }
         ]}
+        onRefresh={function () {}}
       />
     )
     expect(await axe(container, axeOptions)).toHaveNoViolations()
@@ -94,6 +97,11 @@ describe('UI accessibility', () => {
     const { container } = render(
       <IssuesView report={sampleReport} onRequestFix={function () {}} />
     )
+    expect(await axe(container, axeOptions)).toHaveNoViolations()
+  })
+
+  it('AiView has no axe violations', async () => {
+    const { container } = render(<AiView />)
     expect(await axe(container, axeOptions)).toHaveNoViolations()
   })
 

@@ -10,10 +10,12 @@ export const strings = {
   close: 'Close',
   tabOverview: 'Overview',
   tabIssues: 'Issues',
-  tabFileContext: 'File context',
+  tabAiView: 'AI view',
+  tabFileContext: 'File',
   scanning: 'Scanning…',
   scanningDesign: 'Scanning your design…',
   reScan: 'Re-scan',
+  scoreCaption: 'AI-readiness score',
   statusReadyFile: 'Ready to scan the full file.',
   statusPickPages: 'Choose one or more pages to scan.',
   statusReadyOnePage: 'One page selected. Ready when you are.',
@@ -28,6 +30,8 @@ export const strings = {
     'Overview will show score, pass/issue counts, and category breakdown.',
   issuesPlaceholder:
     'Issues will list prioritized findings with why / impact / how to fix.',
+  aiViewPlaceholder:
+    'AI view will summarize how agents are likely to read this file.',
   fileContextPlaceholder:
     'File context will show inventory and scan metadata for what was audited.'
 } as const

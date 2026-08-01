@@ -20,8 +20,8 @@
   --gauge-panel: #f3f4f8;
   --icon-naming-bg: #e0e7ff;
   --icon-naming: #2563eb;
-  --icon-variants-bg: #f3ebe0;
-  --icon-variants: #b85c38;
+  --icon-variants-bg: #fff1e0;
+  --icon-variants: var(--warning);
   --icon-tokens-bg: #ebe4f8;
   --icon-tokens: #7c3aed;
   --icon-structure-bg: #d8f3ef;
@@ -408,7 +408,7 @@ select:focus-visible,
   align-items: center;
   text-align: center;
   gap: 4px;
-  padding: 8px 0 4px;
+  padding: 20px 0 4px;
 }
 
 .score-ring {
@@ -733,11 +733,41 @@ select:focus-visible,
 .issue-card-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+}
+
+.issue-card-item-expanded {
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.issue-card-item-expanded .issue-card {
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.issue-card-item-expanded .issue-card:hover {
+  background: var(--row);
+}
+
+.issue-card-item-expanded .issue-card svg:last-child {
+  transform: rotate(90deg);
+  transition: transform 120ms ease;
 }
 
 .issue-card-item .issue-details {
   margin-top: 0;
+}
+
+.issue-card-item-expanded .issue-details {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 14px 14px;
+  background: var(--gauge-panel);
 }
 
 .issues-footer {

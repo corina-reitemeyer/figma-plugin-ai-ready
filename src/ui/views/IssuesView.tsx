@@ -139,7 +139,14 @@ export function IssuesView({
             {filteredIssues.map(function (issue) {
               const expanded = expandedId === issue.id
               return (
-                <li key={issue.id} className="issue-card-item">
+                <li
+                  key={issue.id}
+                  className={
+                    expanded
+                      ? 'issue-card-item issue-card-item-expanded'
+                      : 'issue-card-item'
+                  }
+                >
                   <button
                     type="button"
                     className="issue-card"

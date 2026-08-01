@@ -397,10 +397,10 @@ select:focus-visible,
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 4px;
+  gap: 0;
   border-bottom: 1px solid var(--rule);
   background: var(--paper);
-  padding: 0 8px 0 4px;
+  padding: 0 0 0 4px;
   flex-shrink: 0;
 }
 
@@ -434,11 +434,13 @@ select:focus-visible,
 .results-refresh {
   appearance: none;
   border: 0;
+  border-left: 1px solid var(--rule);
   background: transparent;
-  width: 36px;
-  height: 36px;
-  margin: 4px 0;
-  border-radius: 999px;
+  width: 44px;
+  align-self: stretch;
+  margin: 0;
+  margin-left: 4px;
+  border-radius: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;

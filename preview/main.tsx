@@ -1,9 +1,13 @@
 import { h, render } from 'preact'
-import { useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 
 import { ScopeKind } from '../src/shared/types'
 import { Button } from '../src/ui/Button'
 import { ResultsTabId, ResultsTabs } from '../src/ui/ResultsTabs'
+import {
+  ScopeSnapshot,
+  transitionForSelectionChange
+} from '../src/ui/smartScope'
 import { StartScreen } from '../src/ui/StartScreen'
 import { strings } from '../src/ui/strings'
 import { AiView } from '../src/ui/views/AiView'
@@ -35,6 +39,37 @@ function PreviewApp() {
   } | null>(null)
   const [activeTab, setActiveTab] = useState<ResultsTabId>('aiView')
   const [lastScan, setLastScan] = useState('—')
+  const previousSelectionCount = useRef(selectionCount)
+  const scopeRef = useRef(scope)
+  const selectedPageIdsRef = useRef(selectedPageIds)
+  const fallbackRef = useRef<ScopeSnapshot>({
+    scope: 'pages',
+    selectedPageIds: ['0:1']
+  })
+  scopeRef.current = scope
+  selectedPageIdsRef.current = selectedPageIds
+
+  useEffect(
+    function () {
+      const transition = transitionForSelectionChange({
+        previousCount: previousSelectionCount.current,
+        nextCount: selectionCount,
+        scope: scopeRef.current,
+        selectedPageIds: selectedPageIdsRef.current,
+        fallback: fallbackRef.current,
+        currentPageId: '0:1',
+        pages: SAMPLE_PAGES
+      })
+      previousSelectionCount.current = selectionCount
+      if (transition === null) {
+        return
+      }
+      fallbackRef.current = transition.fallback
+      setScope(transition.scope)
+      setSelectedPageIds(transition.selectedPageIds)
+    },
+    [selectionCount]
+  )
 
   const canScan =
     !scanning &&
@@ -116,11 +151,31 @@ function PreviewApp() {
               pages={SAMPLE_PAGES}
               selectedPageIds={selectedPageIds}
               selectionCount={selectionCount}
+              primaryName={
+                selectionCount === 0
+                  ? ''
+                  : selectionCount === 1
+                    ? 'Checkout'
+                    : 'Checkout'
+              }
               scanning={scanning}
               canScan={canScan}
               progress={progress}
-              onScopeChange={setScope}
-              onPagesChange={setSelectedPageIds}
+              onScopeChange={function (next) {
+                setScope(next)
+                if (next !== 'selection') {
+                  fallbackRef.current = {
+                    scope: next,
+                    selectedPageIds
+                  }
+                }
+              }}
+              onPagesChange={function (next) {
+                setSelectedPageIds(next)
+                if (scope !== 'selection') {
+                  fallbackRef.current = { scope, selectedPageIds: next }
+                }
+              }}
               onScan={function () {
                 setLastScan(
                   scope === 'pages'

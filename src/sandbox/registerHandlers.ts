@@ -33,16 +33,40 @@ import { requestScanCancel } from './scanCancel'
 import { selectAndZoom } from './selectAndZoom'
 
 function emitSelectionStatus(): void {
+  const selection = figma.currentPage.selection
+  const primary = selection[0]
   emit<SelectionStatusHandler>('SELECTION_STATUS', {
-    count: figma.currentPage.selection.length
+    count: selection.length,
+    primaryName: primary === undefined ? '' : safeText(primary.name),
+    primaryType: primary === undefined ? '' : primary.type
   })
 }
 
 /**
  * Wires guarded UI ↔ sandbox handlers. Unknown/invalid payloads are ignored or rejected.
  */
+function emitPagesList(): void {
+  void (async function () {
+    const pages = []
+    for (const page of figma.root.children) {
+      pages.push({
+        id: page.id,
+        name: safeText(page.name)
+      })
+    }
+    emit<ListPagesResultHandler>('LIST_PAGES_RESULT', {
+      pages,
+      currentPageId: figma.currentPage.id
+    })
+  })()
+}
+
 export function registerHandlers(): void {
   figma.on('selectionchange', emitSelectionStatus)
+  figma.on('currentpagechange', function () {
+    emitPagesList()
+    emitSelectionStatus()
+  })
 
   on<CloseRequestHandler>('CLOSE_REQUEST', function () {
     figma.closePlugin()
@@ -83,19 +107,7 @@ export function registerHandlers(): void {
   })
 
   on<ListPagesRequestHandler>('LIST_PAGES_REQUEST', function () {
-    void (async function () {
-      const pages = []
-      for (const page of figma.root.children) {
-        pages.push({
-          id: page.id,
-          name: safeText(page.name)
-        })
-      }
-      emit<ListPagesResultHandler>('LIST_PAGES_RESULT', {
-        pages,
-        currentPageId: figma.currentPage.id
-      })
-    })()
+    emitPagesList()
   })
 
   on<GetPreferencesRequestHandler>('GET_PREFERENCES_REQUEST', function () {

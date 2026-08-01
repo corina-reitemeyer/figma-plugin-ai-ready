@@ -35,6 +35,7 @@ describe('UI accessibility', () => {
           { id: '0:2', name: 'Foundations' }
         ]}
         selectedPageIds={['0:1']}
+        selectionCount={0}
         onScopeChange={function () {}}
         onPagesChange={function () {}}
       />
@@ -52,6 +53,7 @@ describe('UI accessibility', () => {
         ]}
         selectedPageIds={['0:1']}
         selectionCount={1}
+        primaryName="Button"
         scanning={false}
         canScan={true}
         progress={null}

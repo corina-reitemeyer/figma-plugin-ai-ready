@@ -2,7 +2,7 @@ import { ScopeKind } from './types'
 
 export const SCAN_PREFERENCES_KEY = 'scanPreferences'
 
-export const DEFAULT_SCOPE: ScopeKind = 'file'
+export const DEFAULT_SCOPE: ScopeKind = 'pages'
 
 export type ScanPreferences = {
   scope: ScopeKind

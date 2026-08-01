@@ -89,6 +89,14 @@ export interface SetPreferencesRequestHandler extends EventHandler {
   handler: (payload: ScanPreferences) => void
 }
 
+export type SelectionStatus = {
+  count: number
+  /** First selected node name, when any. */
+  primaryName: string
+  /** First selected node type, when any (e.g. FRAME, COMPONENT). */
+  primaryType: string
+}
+
 export interface SelectionStatusRequestHandler extends EventHandler {
   name: 'SELECTION_STATUS_REQUEST'
   handler: () => void
@@ -96,7 +104,7 @@ export interface SelectionStatusRequestHandler extends EventHandler {
 
 export interface SelectionStatusHandler extends EventHandler {
   name: 'SELECTION_STATUS'
-  handler: (payload: { count: number }) => void
+  handler: (payload: SelectionStatus) => void
 }
 
 // ——— sandbox → UI ———

@@ -29,6 +29,13 @@ import { Button } from './Button'
 import { ConfirmFixDialog } from './ConfirmFixDialog'
 import { LiveRegion } from './LiveRegion'
 import { ResultsTabId, ResultsTabs } from './ResultsTabs'
+import {
+  coerceScopeForSelectionCount,
+  followCurrentPageSelection,
+  ScopeSnapshot,
+  snapshotNonSelection,
+  transitionForSelectionChange
+} from './smartScope'
 import { StartScreen } from './StartScreen'
 import { strings } from './strings'
 import { AiView } from './views/AiView'
@@ -43,6 +50,7 @@ export function App() {
   const [pages, setPages] = useState<PageInfo[]>([])
   const [selectedPageIds, setSelectedPageIds] = useState<string[]>([])
   const [selectionCount, setSelectionCount] = useState(0)
+  const [primaryName, setPrimaryName] = useState('')
   const [appState, setAppState] = useState<AppState>('pre-scan')
   const [status, setStatus] = useState<string>('')
   const [progress, setProgress] = useState<{
@@ -60,6 +68,13 @@ export function App() {
   const preferencesReady = useRef(false)
   const currentPageIdRef = useRef<string | null>(null)
   const pagesRef = useRef<PageInfo[]>([])
+  const scopeRef = useRef<ScopeKind>(DEFAULT_SCOPE)
+  const selectedPageIdsRef = useRef<string[]>([])
+  const selectionCountRef = useRef(0)
+  const fallbackRef = useRef<ScopeSnapshot>({
+    scope: DEFAULT_SCOPE,
+    selectedPageIds: []
+  })
   const pendingPreferences = useRef<{
     scope: ScopeKind
     selectedPageIds: string[]
@@ -78,6 +93,26 @@ export function App() {
     })
   }, [])
 
+  const applyScopeState = useCallback(
+    function (
+      nextScope: ScopeKind,
+      nextPageIds: string[],
+      options?: { persist?: boolean; fallback?: ScopeSnapshot }
+    ) {
+      scopeRef.current = nextScope
+      selectedPageIdsRef.current = nextPageIds
+      setScope(nextScope)
+      setSelectedPageIds(nextPageIds)
+      if (options?.fallback !== undefined) {
+        fallbackRef.current = options.fallback
+      }
+      if (options?.persist !== false) {
+        persistPreferences(nextScope, nextPageIds)
+      }
+    },
+    [persistPreferences]
+  )
+
   const clearTransientStatus = useCallback(function () {
     setStatus(function (current) {
       return current.startsWith('Scan failed') ||
@@ -90,19 +125,37 @@ export function App() {
   const handleScopeChange = useCallback(
     function (nextScope: ScopeKind) {
       clearTransientStatus()
-      setScope(nextScope)
-      persistPreferences(nextScope, selectedPageIds)
+      if (nextScope === 'selection' && selectionCountRef.current === 0) {
+        return
+      }
+      const pageIds =
+        nextScope === 'pages'
+          ? resolveSelectedPageIds(
+              selectedPageIdsRef.current,
+              pagesRef.current,
+              currentPageIdRef.current ?? ''
+            )
+          : selectedPageIdsRef.current
+      const fallback =
+        nextScope === 'selection'
+          ? fallbackRef.current
+          : { scope: nextScope, selectedPageIds: pageIds }
+      applyScopeState(nextScope, pageIds, { fallback })
     },
-    [clearTransientStatus, persistPreferences, selectedPageIds]
+    [applyScopeState, clearTransientStatus]
   )
 
   const handlePagesChange = useCallback(
     function (nextPageIds: string[]) {
       clearTransientStatus()
-      setSelectedPageIds(nextPageIds)
-      persistPreferences(scope, nextPageIds)
+      applyScopeState(scopeRef.current, nextPageIds, {
+        fallback:
+          scopeRef.current === 'selection'
+            ? fallbackRef.current
+            : { scope: scopeRef.current, selectedPageIds: nextPageIds }
+      })
     },
-    [clearTransientStatus, persistPreferences, scope]
+    [applyScopeState, clearTransientStatus]
   )
 
   useEffect(function () {
@@ -114,26 +167,46 @@ export function App() {
       scope: ScopeKind
       selectedPageIds: string[]
     }) {
-      const currentPageId = currentPageIdRef.current
-      if (currentPageId === null) {
+      const pageId = currentPageIdRef.current
+      if (pageId === null) {
         pendingPreferences.current = prefs
         return
       }
-      setScope(prefs.scope)
-      setSelectedPageIds(
-        resolveSelectedPageIds(
-          prefs.selectedPageIds,
-          pagesRef.current,
-          currentPageId
-        )
+      const resolvedPages = resolveSelectedPageIds(
+        prefs.selectedPageIds,
+        pagesRef.current,
+        pageId
       )
+      const coerced = coerceScopeForSelectionCount(
+        prefs.scope,
+        resolvedPages,
+        selectionCountRef.current,
+        pageId,
+        pagesRef.current
+      )
+      const nextScope =
+        selectionCountRef.current > 0 ? 'selection' : coerced.scope
+      const fallback = snapshotNonSelection(
+        coerced.scope,
+        coerced.selectedPageIds,
+        pageId,
+        pagesRef.current
+      )
+      applyScopeState(nextScope, coerced.selectedPageIds, {
+        persist: false,
+        fallback
+      })
       preferencesReady.current = true
       pendingPreferences.current = null
+      if (nextScope !== prefs.scope) {
+        persistPreferences(nextScope, coerced.selectedPageIds)
+      }
     }
 
     const unsubscribePages = on<ListPagesResultHandler>(
       'LIST_PAGES_RESULT',
       function (payload) {
+        const previousCurrentPageId = currentPageIdRef.current
         pagesRef.current = payload.pages
         setPages(payload.pages)
         currentPageIdRef.current = payload.currentPageId
@@ -143,14 +216,39 @@ export function App() {
           return
         }
 
-        // Default / restore page checkboxes once we know the page list.
-        setSelectedPageIds(function (current) {
-          return resolveSelectedPageIds(
-            current,
+        const followed = followCurrentPageSelection(
+          selectedPageIdsRef.current,
+          previousCurrentPageId,
+          payload.currentPageId
+        )
+        const nextPageIds =
+          followed ??
+          resolveSelectedPageIds(
+            selectedPageIdsRef.current,
             payload.pages,
             payload.currentPageId
           )
-        })
+
+        if (
+          followed !== null ||
+          nextPageIds.join('\0') !== selectedPageIdsRef.current.join('\0')
+        ) {
+          const nextFallback =
+            scopeRef.current === 'selection'
+              ? {
+                  ...fallbackRef.current,
+                  selectedPageIds:
+                    fallbackRef.current.scope === 'pages'
+                      ? nextPageIds
+                      : fallbackRef.current.selectedPageIds
+                }
+              : scopeRef.current === 'pages'
+                ? { scope: 'pages' as const, selectedPageIds: nextPageIds }
+                : fallbackRef.current
+          applyScopeState(scopeRef.current, nextPageIds, {
+            fallback: nextFallback
+          })
+        }
       }
     )
 
@@ -168,7 +266,26 @@ export function App() {
     const unsubscribeSelection = on<SelectionStatusHandler>(
       'SELECTION_STATUS',
       function (payload) {
+        const previousCount = selectionCountRef.current
+        selectionCountRef.current = payload.count
         setSelectionCount(payload.count)
+        setPrimaryName(payload.primaryName)
+
+        const transition = transitionForSelectionChange({
+          previousCount,
+          nextCount: payload.count,
+          scope: scopeRef.current,
+          selectedPageIds: selectedPageIdsRef.current,
+          fallback: fallbackRef.current,
+          currentPageId: currentPageIdRef.current,
+          pages: pagesRef.current
+        })
+        if (transition === null) {
+          return
+        }
+        applyScopeState(transition.scope, transition.selectedPageIds, {
+          fallback: transition.fallback
+        })
       }
     )
 
@@ -177,7 +294,7 @@ export function App() {
       unsubscribePrefs()
       unsubscribeSelection()
     }
-  }, [])
+  }, [applyScopeState, persistPreferences])
 
   useEffect(function () {
     return on<ScanProgressHandler>('SCAN_PROGRESS', function (event) {
@@ -322,6 +439,7 @@ export function App() {
           pages={pages}
           selectedPageIds={selectedPageIds}
           selectionCount={selectionCount}
+          primaryName={primaryName}
           scanning={appState === 'scanning'}
           canScan={canRun}
           progress={progress}

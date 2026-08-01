@@ -5,6 +5,7 @@ import { ScopeKind } from '../shared/types'
 import { Button } from './Button'
 import { IconSearch, IconSparkles } from './Icon'
 import { ScopePicker } from './ScopePicker'
+import { scanButtonLabel, statusMessageForScope } from './smartScope'
 import { strings } from './strings'
 
 type StartScreenProps = {
@@ -12,6 +13,7 @@ type StartScreenProps = {
   pages: PageInfo[]
   selectedPageIds: string[]
   selectionCount: number
+  primaryName?: string
   scanning: boolean
   canScan: boolean
   progress?: { current: number; total: number; label: string } | null
@@ -22,37 +24,12 @@ type StartScreenProps = {
   onCancel: () => void
 }
 
-function statusMessage(
-  scope: ScopeKind,
-  selectionCount: number,
-  selectedPageCount: number
-): string {
-  if (scope === 'file') {
-    return strings.statusReadyFile
-  }
-  if (scope === 'pages') {
-    if (selectedPageCount === 0) {
-      return strings.statusPickPages
-    }
-    if (selectedPageCount === 1) {
-      return strings.statusReadyOnePage
-    }
-    return strings.statusReadyPages.replace('{count}', String(selectedPageCount))
-  }
-  if (selectionCount === 0) {
-    return strings.statusEmptySelection
-  }
-  if (selectionCount === 1) {
-    return strings.statusReadyOneLayer
-  }
-  return strings.statusReadyLayers.replace('{count}', String(selectionCount))
-}
-
 export function StartScreen({
   scope,
   pages,
   selectedPageIds,
   selectionCount,
+  primaryName = '',
   scanning,
   canScan,
   progress = null,
@@ -67,7 +44,21 @@ export function StartScreen({
       ? statusOverride
       : scanning
         ? strings.scanningDesign
-        : statusMessage(scope, selectionCount, selectedPageIds.length)
+        : statusMessageForScope({
+            scope,
+            selectionCount,
+            primaryName,
+            selectedPageIds,
+            pages
+          })
+
+  const buttonLabel = scanButtonLabel({
+    scope,
+    selectionCount,
+    primaryName,
+    selectedPageIds,
+    pages
+  })
 
   return (
     <div className="start-screen">
@@ -112,6 +103,7 @@ export function StartScreen({
               scope={scope}
               pages={pages}
               selectedPageIds={selectedPageIds}
+              selectionCount={selectionCount}
               disabled={scanning}
               onScopeChange={onScopeChange}
               onPagesChange={onPagesChange}
@@ -123,7 +115,7 @@ export function StartScreen({
               disabled={!canScan || scanning}
               icon={<IconSearch size={16} />}
             >
-              {strings.runScan}
+              {buttonLabel}
             </Button>
           </div>
         )}

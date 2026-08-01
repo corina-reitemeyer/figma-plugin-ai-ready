@@ -7,8 +7,8 @@ import {
 } from '../../src/shared/preferences'
 
 describe('preferences', () => {
-  it('defaults scope to full file', () => {
-    expect(DEFAULT_SCOPE).toBe('file')
+  it('defaults scope to pages', () => {
+    expect(DEFAULT_SCOPE).toBe('pages')
   })
 
   it('parses valid scan preferences', () => {

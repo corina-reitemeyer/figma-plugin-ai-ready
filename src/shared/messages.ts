@@ -55,6 +55,21 @@ export interface ScanCancelHandler extends EventHandler {
   handler: () => void
 }
 
+export type PageInfo = {
+  id: string
+  name: string
+}
+
+export interface ListPagesRequestHandler extends EventHandler {
+  name: 'LIST_PAGES_REQUEST'
+  handler: () => void
+}
+
+export interface ListPagesResultHandler extends EventHandler {
+  name: 'LIST_PAGES_RESULT'
+  handler: (payload: { pages: PageInfo[]; currentPageId: string }) => void
+}
+
 // ——— sandbox → UI ———
 
 export type SelectNodeResult =

@@ -6,7 +6,7 @@ export default function () {
   registerHandlers()
 
   showUI({
-    height: 280,
-    width: 360
+    height: 520,
+    width: 380
   })
 }

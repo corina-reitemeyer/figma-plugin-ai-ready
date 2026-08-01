@@ -4,6 +4,8 @@ import {
   AutofixRequestHandler,
   AutofixResultHandler,
   CloseRequestHandler,
+  ListPagesRequestHandler,
+  ListPagesResultHandler,
   parseAutofixRequest,
   parseScanRequest,
   parseSelectNodeRequest,
@@ -14,6 +16,7 @@ import {
   SelectNodeRequestHandler,
   SelectNodeResultHandler
 } from '../shared/messages'
+import { safeText } from '../shared/safeText'
 import { applyConfirmedAutofix } from './autofix'
 import { runAudit } from './runAudit'
 import { requestScanCancel } from './scanCancel'
@@ -58,6 +61,22 @@ export function registerHandlers(): void {
 
       const result = await applyConfirmedAutofix(request)
       emit<AutofixResultHandler>('AUTOFIX_RESULT', result)
+    })()
+  })
+
+  on<ListPagesRequestHandler>('LIST_PAGES_REQUEST', function () {
+    void (async function () {
+      const pages = []
+      for (const page of figma.root.children) {
+        pages.push({
+          id: page.id,
+          name: safeText(page.name)
+        })
+      }
+      emit<ListPagesResultHandler>('LIST_PAGES_RESULT', {
+        pages,
+        currentPageId: figma.currentPage.id
+      })
     })()
   })
 

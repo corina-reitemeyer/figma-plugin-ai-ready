@@ -3,6 +3,9 @@ import { h } from 'preact'
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks'
 
 import {
+  AutofixRequest,
+  AutofixRequestHandler,
+  AutofixResultHandler,
   CloseRequestHandler,
   ListPagesRequestHandler,
   ListPagesResultHandler,
@@ -13,6 +16,7 @@ import {
   ScanResultHandler
 } from '../shared/messages'
 import { AuditReport, Issue, ScopeKind } from '../shared/types'
+import { ConfirmFixDialog } from './ConfirmFixDialog'
 import { LiveRegion } from './LiveRegion'
 import { ResultsTabId, ResultsTabs } from './ResultsTabs'
 import { ScopePicker } from './ScopePicker'
@@ -35,6 +39,7 @@ export function App() {
   >('polite')
   const [activeTab, setActiveTab] = useState<ResultsTabId>('overview')
   const [pendingFix, setPendingFix] = useState<Issue | null>(null)
+  const [fixBusy, setFixBusy] = useState(false)
 
   useEffect(function () {
     emit<ListPagesRequestHandler>('LIST_PAGES_REQUEST')
@@ -87,6 +92,7 @@ export function App() {
       setAppState('scanning')
       setReport(null)
       setPendingFix(null)
+      setFixBusy(false)
       setStatusPoliteness('polite')
       setStatus(strings.scanning)
 
@@ -105,6 +111,64 @@ export function App() {
     },
     [scope, selectedPageIds]
   )
+
+  useEffect(
+    function () {
+      return on<AutofixResultHandler>('AUTOFIX_RESULT', function (result) {
+        setFixBusy(false)
+        if (result.ok) {
+          setPendingFix(null)
+          setStatusPoliteness('polite')
+          setStatus(`${result.detail} Re-scanning…`)
+          handleRun()
+          return
+        }
+        setStatusPoliteness('assertive')
+        setStatus(`Autofix failed (${result.reason}): ${result.detail}`)
+      })
+    },
+    [handleRun]
+  )
+
+  const handleConfirmFix = useCallback(function () {
+    if (pendingFix === null || pendingFix.autofixId === undefined) {
+      return
+    }
+
+    let request: AutofixRequest | null = null
+    if (
+      pendingFix.autofixId === 'rename-convention' &&
+      pendingFix.autofixPayload?.suggestedName
+    ) {
+      request = {
+        autofixId: 'rename-convention',
+        nodeId: pendingFix.nodeId,
+        suggestedName: pendingFix.autofixPayload.suggestedName
+      }
+    } else if (
+      pendingFix.autofixId === 'bind-inferred' &&
+      pendingFix.autofixPayload?.field !== undefined &&
+      pendingFix.autofixPayload.paintIndex !== undefined &&
+      pendingFix.autofixPayload.variableId
+    ) {
+      request = {
+        autofixId: 'bind-inferred',
+        nodeId: pendingFix.nodeId,
+        field: pendingFix.autofixPayload.field,
+        paintIndex: pendingFix.autofixPayload.paintIndex,
+        variableId: pendingFix.autofixPayload.variableId
+      }
+    }
+
+    if (request === null) {
+      setStatusPoliteness('assertive')
+      setStatus('This issue is missing autofix payload data.')
+      return
+    }
+
+    setFixBusy(true)
+    emit<AutofixRequestHandler>('AUTOFIX_REQUEST', request)
+  }, [pendingFix])
 
   return (
     <div className="app">
@@ -183,10 +247,6 @@ export function App() {
                     report={report}
                     onRequestFix={function (issue) {
                       setPendingFix(issue)
-                      setStatusPoliteness('polite')
-                      setStatus(
-                        `Confirm fix for “${issue.nodeName}” in the next step (autofix UI).`
-                      )
                     }}
                   />
                 )
@@ -199,9 +259,14 @@ export function App() {
             ]}
           />
           {pendingFix !== null ? (
-            <p className="muted">
-              Pending fix queued for confirm dialog: {pendingFix.autofixId}
-            </p>
+            <ConfirmFixDialog
+              issue={pendingFix}
+              busy={fixBusy}
+              onConfirm={handleConfirmFix}
+              onCancel={function () {
+                setPendingFix(null)
+              }}
+            />
           ) : null}
         </section>
       ) : null}

@@ -304,6 +304,19 @@ input:focus-visible {
   border-bottom: 1px solid var(--border);
 }
 
+.confirm-dialog {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(13, 153, 255, 0.06);
+}
+
+.confirm-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

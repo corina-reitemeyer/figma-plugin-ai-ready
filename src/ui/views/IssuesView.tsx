@@ -14,6 +14,7 @@ type CategoryFilter = RuleCategory | 'all'
 type IssuesViewProps = {
   report: AuditReport
   onRequestFix?: (issue: Issue) => void
+  onRequestFixAll?: (issues: Issue[]) => void
 }
 
 const CATEGORY_FILTERS: CategoryFilter[] = [
@@ -36,7 +37,11 @@ function issueLocation(issue: Issue): string {
   return issue.nodeName
 }
 
-export function IssuesView({ report, onRequestFix }: IssuesViewProps) {
+export function IssuesView({
+  report,
+  onRequestFix,
+  onRequestFixAll
+}: IssuesViewProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
 
@@ -70,17 +75,16 @@ export function IssuesView({ report, onRequestFix }: IssuesViewProps) {
   }
 
   function handleFixAll(): void {
-    const first = quickFixes[0]
-    if (first === undefined || onRequestFix === undefined) {
+    if (quickFixes.length === 0 || onRequestFixAll === undefined) {
       return
     }
-    onRequestFix(first)
+    onRequestFixAll(quickFixes)
   }
 
   return (
     <div className="issues-view">
       <div className="issues-body">
-        {quickFixes.length > 0 && onRequestFix !== undefined ? (
+        {quickFixes.length > 0 && onRequestFixAll !== undefined ? (
           <div className="feature-card quick-fixes-card">
             <span
               className="feature-card-icon quick-fix-icon"

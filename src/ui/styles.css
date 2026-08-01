@@ -1281,6 +1281,201 @@ select:focus-visible,
   font-size: 13px;
 }
 
+/* ——— Fix all progress ——— */
+
+.fix-all-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  gap: 14px;
+}
+
+.fix-all-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(165deg, #d4f7ea 0%, #f4fbe3 55%, #ffffff 100%);
+  border: 1px solid var(--mint);
+  flex-shrink: 0;
+}
+
+.fix-all-hero-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--icon-quickfix-bg);
+  color: var(--icon-quickfix);
+  margin-bottom: 4px;
+}
+
+.fix-all-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.fix-all-subtitle {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.fix-all-progress {
+  width: 100%;
+  height: 4px;
+  margin-top: 8px;
+  background: rgba(40, 46, 62, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fix-all-progress-bar {
+  height: 100%;
+  background: var(--mint);
+  transition: width 180ms ease;
+}
+
+.fix-all-progress-meta {
+  margin: 0;
+  font-size: 11px;
+}
+
+.fix-all-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.fix-all-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.fix-all-item-running {
+  border-color: var(--mint);
+  background: var(--mint-tint);
+}
+
+.fix-all-item-done {
+  opacity: 0.85;
+}
+
+.fix-all-item-failed {
+  border-color: #f1c0c0;
+  background: #fff5f5;
+}
+
+.fix-all-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid var(--rule);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--icon-quickfix);
+  background: var(--paper);
+}
+
+.fix-all-item-done .fix-all-check {
+  border-color: var(--mint);
+  background: var(--mint-tint);
+}
+
+.fix-all-item-failed .fix-all-check {
+  border-color: var(--error);
+  background: #fff5f5;
+  color: var(--error);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fix-all-empty-check {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rule);
+}
+
+.fix-all-spinner {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid var(--mint);
+  border-top-color: transparent;
+  animation: fix-all-spin 0.7s linear infinite;
+}
+
+@keyframes fix-all-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fix-all-fail-mark {
+  line-height: 1;
+}
+
+.fix-all-item-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fix-all-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.fix-all-item-sub {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fix-all-item-error {
+  font-size: 11px;
+  color: var(--error);
+}
+
+.fix-all-footer {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.fix-all-back-btn {
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 16px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

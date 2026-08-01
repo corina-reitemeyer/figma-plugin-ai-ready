@@ -6,9 +6,15 @@ import { ResultsTabId, ResultsTabs } from '../src/ui/ResultsTabs'
 import { StartScreen } from '../src/ui/StartScreen'
 import { strings } from '../src/ui/strings'
 import { AiView, sampleAiComponent } from '../src/ui/views/AiView'
+import {
+  FixAllItem,
+  FixAllPhase,
+  FixAllView
+} from '../src/ui/views/FixAllView'
 import { FileContextView } from '../src/ui/views/FileContextView'
 import { IssuesView } from '../src/ui/views/IssuesView'
 import { OverviewView } from '../src/ui/views/OverviewView'
+import { Issue } from '../src/shared/types'
 import { sampleReport } from '../tests/fixtures/auditReport'
 import '../src/ui/styles.css'
 import './preview.css'
@@ -24,10 +30,93 @@ function PreviewApp() {
     total: number
     label: string
   } | null>(null)
-  const [activeTab, setActiveTab] = useState<ResultsTabId>('aiView')
+  const [activeTab, setActiveTab] = useState<ResultsTabId>('issues')
   const [lastScan, setLastScan] = useState('—')
+  const [report, setReport] = useState(sampleReport)
+  const [fixAllItems, setFixAllItems] = useState<FixAllItem[] | null>(null)
+  const [fixAllPhase, setFixAllPhase] = useState<FixAllPhase>('applying')
 
   const canScan = !scanning
+
+  function simulateFixAll(issues: Issue[]): void {
+    const items: FixAllItem[] = issues.map(function (issue) {
+      return { issue, status: 'pending' }
+    })
+    setFixAllItems(items)
+    setFixAllPhase('applying')
+    setLastScan('fix-all')
+
+    items.forEach(function (_item, index) {
+      window.setTimeout(function () {
+        setFixAllItems(function (current) {
+          if (current === null) {
+            return null
+          }
+          return current.map(function (entry, i) {
+            if (i === index) {
+              return { ...entry, status: 'running' }
+            }
+            if (i < index && entry.status === 'running') {
+              return { ...entry, status: 'done' }
+            }
+            return entry
+          })
+        })
+      }, index * 450)
+
+      window.setTimeout(function () {
+        setFixAllItems(function (current) {
+          if (current === null) {
+            return null
+          }
+          return current.map(function (entry, i) {
+            if (i === index) {
+              return { ...entry, status: 'done' }
+            }
+            return entry
+          })
+        })
+      }, index * 450 + 350)
+    })
+
+    const applyMs = items.length * 450 + 400
+    window.setTimeout(function () {
+      setFixAllPhase('rescanning')
+    }, applyMs)
+
+    window.setTimeout(function () {
+      setReport(function (current) {
+        const remaining = current.issues.filter(function (issue) {
+          return !issues.some(function (fixed) {
+            return fixed.id === issue.id
+          })
+        })
+        return {
+          ...current,
+          issues: remaining,
+          failedChecks: Math.max(current.failedChecks - issues.length, 0),
+          issueCounts: {
+            ...current.issueCounts,
+            warning: Math.max(
+              current.issueCounts.warning -
+                issues.filter(function (issue) {
+                  return issue.severity === 'warning'
+                }).length,
+              0
+            ),
+            error: Math.max(
+              current.issueCounts.error -
+                issues.filter(function (issue) {
+                  return issue.severity === 'error'
+                }).length,
+              0
+            )
+          }
+        }
+      })
+      setFixAllPhase('done')
+    }, applyMs + 700)
+  }
 
   return (
     <div className="preview-shell">
@@ -35,7 +124,7 @@ function PreviewApp() {
         <h1>Plugin UI preview</h1>
         <p>
           Plugin frame is 420×640. Toggle between the start screen and the
-          post-scan results (defaults to AI view draft).
+          post-scan results (defaults to Issues for Fix all).
         </p>
 
         <label>
@@ -122,6 +211,7 @@ function PreviewApp() {
                   setProgress(null)
                   setMode('overview')
                   setActiveTab('overview')
+                  setReport(sampleReport)
                 }, 1400)
               }}
               onCancel={function () {
@@ -142,64 +232,79 @@ function PreviewApp() {
               className="results-shell"
               aria-label={strings.resultsHeading}
             >
-              <ResultsTabs
-                activeTab={activeTab}
-                onActiveTabChange={setActiveTab}
-                onRefresh={function () {
-                  setLastScan('re-scan')
-                }}
-                tabs={[
-                  {
-                    id: 'overview',
-                    label: strings.tabOverview,
-                    panel: (
-                      <OverviewView
-                        report={sampleReport}
-                        onOpenIssues={function () {
-                          setActiveTab('issues')
-                        }}
-                      />
-                    )
-                  },
-                  {
-                    id: 'issues',
-                    label: strings.tabIssues,
-                    panel: (
-                      <IssuesView
-                        report={sampleReport}
-                        onRequestFix={function () {}}
-                      />
-                    )
-                  },
-                  {
-                    id: 'aiView',
-                    label: strings.tabAiView,
-                    panel: (
-                      <AiView
-                        selectionCount={selectionCount}
-                        component={
-                          selectionCount === 1 ? sampleAiComponent : null
-                        }
-                        onViewOnCanvas={
-                          selectionCount === 1
-                            ? function () {
-                                setLastScan('view-on-canvas')
-                              }
-                            : undefined
-                        }
-                        onDeselect={function () {
-                          setSelectionCount(0)
-                        }}
-                      />
-                    )
-                  },
-                  {
-                    id: 'fileContext',
-                    label: strings.tabFileContext,
-                    panel: <FileContextView report={sampleReport} />
-                  }
-                ]}
-              />
+              {fixAllItems !== null ? (
+                <FixAllView
+                  items={fixAllItems}
+                  phase={fixAllPhase}
+                  onBack={function () {
+                    setFixAllItems(null)
+                    setFixAllPhase('applying')
+                    setActiveTab('issues')
+                    setLastScan('back-to-issues')
+                  }}
+                />
+              ) : (
+                <ResultsTabs
+                  activeTab={activeTab}
+                  onActiveTabChange={setActiveTab}
+                  onRefresh={function () {
+                    setLastScan('re-scan')
+                    setReport(sampleReport)
+                  }}
+                  tabs={[
+                    {
+                      id: 'overview',
+                      label: strings.tabOverview,
+                      panel: (
+                        <OverviewView
+                          report={report}
+                          onOpenIssues={function () {
+                            setActiveTab('issues')
+                          }}
+                        />
+                      )
+                    },
+                    {
+                      id: 'issues',
+                      label: strings.tabIssues,
+                      panel: (
+                        <IssuesView
+                          report={report}
+                          onRequestFix={function () {}}
+                          onRequestFixAll={simulateFixAll}
+                        />
+                      )
+                    },
+                    {
+                      id: 'aiView',
+                      label: strings.tabAiView,
+                      panel: (
+                        <AiView
+                          selectionCount={selectionCount}
+                          component={
+                            selectionCount === 1 ? sampleAiComponent : null
+                          }
+                          onViewOnCanvas={
+                            selectionCount === 1
+                              ? function () {
+                                  setLastScan('view-on-canvas')
+                                }
+                              : undefined
+                          }
+                          onDeselect={function () {
+                            setSelectionCount(0)
+                          }}
+                        />
+                      )
+                    },
+                    {
+                      id: 'fileContext',
+                      label: strings.tabFileContext,
+                      panel: <FileContextView report={report} />
+                    }
+                  ]}
+                />
+              )}
             </section>
           </div>
         )}

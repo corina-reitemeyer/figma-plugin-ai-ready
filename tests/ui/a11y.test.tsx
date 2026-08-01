@@ -8,6 +8,7 @@ import { ResultsTabs } from '../../src/ui/ResultsTabs'
 import { StartScreen } from '../../src/ui/StartScreen'
 import { AiView, sampleAiComponent } from '../../src/ui/views/AiView'
 import { FileContextView } from '../../src/ui/views/FileContextView'
+import { FixAllView } from '../../src/ui/views/FixAllView'
 import { IssuesView } from '../../src/ui/views/IssuesView'
 import { OverviewView } from '../../src/ui/views/OverviewView'
 import { sampleIssue, sampleReport } from '../fixtures/auditReport'
@@ -71,7 +72,30 @@ describe('UI accessibility', () => {
 
   it('IssuesView has no axe violations', async () => {
     const { container } = render(
-      <IssuesView report={sampleReport} onRequestFix={function () {}} />
+      <IssuesView
+        report={sampleReport}
+        onRequestFix={function () {}}
+        onRequestFixAll={function () {}}
+      />
+    )
+    expect(await axe(container, axeOptions)).toHaveNoViolations()
+  })
+
+  it('FixAllView has no axe violations', async () => {
+    const { container } = render(
+      <FixAllView
+        items={[
+          { issue: sampleIssue, status: 'done' },
+          {
+            issue: sampleReport.issues.find(function (issue) {
+              return issue.fixTier === 'auto' && issue.id !== sampleIssue.id
+            })!,
+            status: 'running'
+          }
+        ]}
+        phase="applying"
+        onBack={function () {}}
+      />
     )
     expect(await axe(container, axeOptions)).toHaveNoViolations()
   })

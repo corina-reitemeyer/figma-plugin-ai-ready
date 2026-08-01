@@ -50,6 +50,14 @@ export function IconSparkles(props: IconProps) {
   )
 }
 
+export function IconCheck(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M5 12.5 10 17.5 19 7" />
+    </Svg>
+  )
+}
+
 export function IconRefresh(props: IconProps) {
   return (
     <Svg {...props}>

@@ -82,6 +82,13 @@ export interface CheckResult {
   severity: Severity
   fixTier: FixTier
   autofixId?: AutofixId
+  /** Extra data for confirmed autofix handlers (UI must still confirm). */
+  autofixPayload?: {
+    suggestedName?: string
+    field?: 'fills' | 'strokes'
+    paintIndex?: number
+    variableId?: string
+  }
   /** Short how-to / what Fix will do. */
   fixHint: string
   /** When true, excluded from score denominator. */

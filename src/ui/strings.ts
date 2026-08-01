@@ -44,6 +44,10 @@ export const strings = {
   fix: 'Fix',
   aiViewPlaceholder:
     'AI view will summarize how agents are likely to read this file.',
+  aiVariantProperties: 'Variant properties',
+  aiLayout: 'Layout',
+  aiValuesHeading: 'Values AI would see',
+  aiDescription: 'Description',
   fileContextPlaceholder:
     'File context will show inventory and scan metadata for what was audited.',
   fileScanSection: 'Scan',

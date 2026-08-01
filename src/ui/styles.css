@@ -843,8 +843,141 @@ select:focus-visible,
   font-size: 14px;
 }
 
+/* ——— AI view ——— */
+
 .ai-view {
-  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 8px;
+}
+
+.ai-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.ai-identity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--icon-tokens-bg);
+  color: var(--icon-tokens);
+}
+
+.ai-identity-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ai-identity-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-identity-meta {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--muted-gray);
+}
+
+.ai-identity-kind {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ai-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.ai-row-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-row {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--gauge-panel);
+}
+
+.ai-row-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.ai-row-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 32px;
+  row-gap: 4px;
+}
+
+.ai-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-value-label {
+  font-size: 13px;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.ai-value-raw {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warning);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ai-value-token {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mint);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ai-description {
+  color: var(--ink);
 }
 
 .issue-link,

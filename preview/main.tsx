@@ -33,7 +33,7 @@ function PreviewApp() {
     total: number
     label: string
   } | null>(null)
-  const [activeTab, setActiveTab] = useState<ResultsTabId>('overview')
+  const [activeTab, setActiveTab] = useState<ResultsTabId>('aiView')
   const [lastScan, setLastScan] = useState('—')
 
   const canScan =
@@ -48,7 +48,7 @@ function PreviewApp() {
         <h1>Plugin UI preview</h1>
         <p>
           Plugin frame is 420×640. Toggle between the start screen and the
-          post-scan Overview draft.
+          post-scan results (defaults to AI view draft).
         </p>
 
         <label>

@@ -5,6 +5,7 @@ import { Issue } from '../../src/shared/types'
 
 function issue(partial: Partial<Issue> & Pick<Issue, 'severity' | 'category'>): Issue {
   return {
+    id: 'test:1:1:Problem',
     ruleId: 'test',
     nodeId: '1:1',
     nodeName: 'Button',

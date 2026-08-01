@@ -48,12 +48,15 @@ async function buildRuleContext(
 }
 
 function toIssue(rule: Rule, result: CheckResult): Issue {
+  const nodeName = safeText(result.nodeName)
+  const message = safeText(result.message, 1000)
   return {
     ...result,
-    nodeName: safeText(result.nodeName),
+    id: `${rule.id}:${result.nodeId}:${message}`,
+    nodeName,
     pageName:
       result.pageName === undefined ? undefined : safeText(result.pageName),
-    message: safeText(result.message, 1000),
+    message,
     fixHint: safeText(result.fixHint, 1000),
     category: rule.category,
     ruleLabel: rule.label,

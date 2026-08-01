@@ -1,5 +1,5 @@
 import { ComponentChildren, h, JSX } from 'preact'
-import { useEffect, useId, useRef, useState } from 'preact/hooks'
+import { useEffect, useId, useRef } from 'preact/hooks'
 
 import { strings } from './strings'
 
@@ -13,29 +13,29 @@ type TabSpec = {
 
 type ResultsTabsProps = {
   tabs: TabSpec[]
-  initialTab?: ResultsTabId
+  activeTab: ResultsTabId
+  onActiveTabChange: (tab: ResultsTabId) => void
 }
 
 export function ResultsTabs({
   tabs,
-  initialTab = 'overview'
+  activeTab,
+  onActiveTabChange
 }: ResultsTabsProps) {
   const baseId = useId()
-  const [active, setActive] = useState<ResultsTabId>(initialTab)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(
     function () {
-      if (!tabs.some((tab) => tab.id === active) && tabs[0] !== undefined) {
-        setActive(tabs[0].id)
+      if (!tabs.some((tab) => tab.id === activeTab) && tabs[0] !== undefined) {
+        onActiveTabChange(tabs[0].id)
       }
     },
-    [tabs, active]
+    [tabs, activeTab, onActiveTabChange]
   )
 
   function focusTab(index: number): void {
-    const next = tabRefs.current[index]
-    next?.focus()
+    tabRefs.current[index]?.focus()
   }
 
   function onKeyDown(
@@ -65,7 +65,7 @@ export function ResultsTabs({
     if (tab === undefined) {
       return
     }
-    setActive(tab.id)
+    onActiveTabChange(tab.id)
     focusTab(nextIndex)
   }
 
@@ -73,7 +73,7 @@ export function ResultsTabs({
     <div className="results-tabs">
       <div role="tablist" aria-label={strings.resultsHeading}>
         {tabs.map(function (tab, index) {
-          const selected = tab.id === active
+          const selected = tab.id === activeTab
           const tabId = `${baseId}-tab-${tab.id}`
           const panelId = `${baseId}-panel-${tab.id}`
           return (
@@ -89,7 +89,7 @@ export function ResultsTabs({
               aria-controls={panelId}
               tabIndex={selected ? 0 : -1}
               onClick={function () {
-                setActive(tab.id)
+                onActiveTabChange(tab.id)
               }}
               onKeyDown={function (event) {
                 onKeyDown(event, index)
@@ -101,7 +101,7 @@ export function ResultsTabs({
         })}
       </div>
       {tabs.map(function (tab) {
-        const selected = tab.id === active
+        const selected = tab.id === activeTab
         return (
           <div
             key={tab.id}

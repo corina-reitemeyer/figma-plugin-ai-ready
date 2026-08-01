@@ -12,11 +12,14 @@ import {
   ScanRequestHandler,
   ScanResultHandler
 } from '../shared/messages'
-import { AuditReport, ScopeKind } from '../shared/types'
+import { AuditReport, Issue, ScopeKind } from '../shared/types'
 import { LiveRegion } from './LiveRegion'
-import { ResultsTabs } from './ResultsTabs'
+import { ResultsTabId, ResultsTabs } from './ResultsTabs'
 import { ScopePicker } from './ScopePicker'
 import { strings } from './strings'
+import { FileContextView } from './views/FileContextView'
+import { IssuesView } from './views/IssuesView'
+import { OverviewView } from './views/OverviewView'
 
 type AppState = 'pre-scan' | 'scanning' | 'results'
 
@@ -30,6 +33,8 @@ export function App() {
   const [statusPoliteness, setStatusPoliteness] = useState<
     'polite' | 'assertive'
   >('polite')
+  const [activeTab, setActiveTab] = useState<ResultsTabId>('overview')
+  const [pendingFix, setPendingFix] = useState<Issue | null>(null)
 
   useEffect(function () {
     emit<ListPagesRequestHandler>('LIST_PAGES_REQUEST')
@@ -51,6 +56,7 @@ export function App() {
       if (result.ok) {
         setReport(result.report)
         setAppState('results')
+        setActiveTab('overview')
         setStatusPoliteness('polite')
         setStatus(
           `Scan complete. Score ${result.report.overallScore}, ${result.report.issues.length} issues.`
@@ -80,6 +86,7 @@ export function App() {
     function () {
       setAppState('scanning')
       setReport(null)
+      setPendingFix(null)
       setStatusPoliteness('polite')
       setStatus(strings.scanning)
 
@@ -99,26 +106,13 @@ export function App() {
     [scope, selectedPageIds]
   )
 
-  const handleCancel = useCallback(function () {
-    emit<ScanCancelHandler>('SCAN_CANCEL')
-  }, [])
-
-  const handleClose = useCallback(function () {
-    emit<CloseRequestHandler>('CLOSE_REQUEST')
-  }, [])
-
-  const handleRescan = useCallback(
-    function () {
-      handleRun()
-    },
-    [handleRun]
-  )
-
   return (
     <div className="app">
       <header>
         <h1>{strings.appTitle}</h1>
-        <p className="help">{strings.preScanHelp}</p>
+        {appState !== 'results' ? (
+          <p className="help">{strings.preScanHelp}</p>
+        ) : null}
       </header>
 
       <LiveRegion message={status} politeness={statusPoliteness} />
@@ -136,7 +130,13 @@ export function App() {
 
       <div className="actions">
         {appState === 'scanning' ? (
-          <button type="button" className="secondary" onClick={handleCancel}>
+          <button
+            type="button"
+            className="secondary"
+            onClick={function () {
+              emit<ScanCancelHandler>('SCAN_CANCEL')
+            }}
+          >
             {strings.cancelScan}
           </button>
         ) : (
@@ -147,7 +147,9 @@ export function App() {
         <button
           type="button"
           className="secondary"
-          onClick={handleClose}
+          onClick={function () {
+            emit<CloseRequestHandler>('CLOSE_REQUEST')
+          }}
           disabled={appState === 'scanning'}
         >
           {strings.close}
@@ -158,45 +160,49 @@ export function App() {
         <section aria-labelledby="results-heading">
           <h2 id="results-heading">{strings.resultsHeading}</h2>
           <ResultsTabs
+            activeTab={activeTab}
+            onActiveTabChange={setActiveTab}
             tabs={[
               {
                 id: 'overview',
                 label: strings.tabOverview,
                 panel: (
-                  <p className="muted">
-                    {strings.overviewPlaceholder} Current score:{' '}
-                    {report.overallScore} ({report.band}).
-                  </p>
+                  <OverviewView
+                    report={report}
+                    onOpenIssues={function () {
+                      setActiveTab('issues')
+                    }}
+                  />
                 )
               },
               {
                 id: 'issues',
                 label: strings.tabIssues,
                 panel: (
-                  <p className="muted">
-                    {strings.issuesPlaceholder} {report.issues.length} issue(s)
-                    ready to render.
-                  </p>
+                  <IssuesView
+                    report={report}
+                    onRequestFix={function (issue) {
+                      setPendingFix(issue)
+                      setStatusPoliteness('polite')
+                      setStatus(
+                        `Confirm fix for “${issue.nodeName}” in the next step (autofix UI).`
+                      )
+                    }}
+                  />
                 )
               },
               {
                 id: 'fileContext',
                 label: strings.tabFileContext,
-                panel: (
-                  <p className="muted">
-                    {strings.fileContextPlaceholder}{' '}
-                    {report.inventory.componentCount} components across{' '}
-                    {report.inventory.pageCount} page(s).
-                  </p>
-                )
+                panel: <FileContextView report={report} />
               }
             ]}
           />
-          <div className="actions" style={{ marginTop: 12 }}>
-            <button type="button" className="secondary" onClick={handleRescan}>
-              Re-scan
-            </button>
-          </div>
+          {pendingFix !== null ? (
+            <p className="muted">
+              Pending fix queued for confirm dialog: {pendingFix.autofixId}
+            </p>
+          ) : null}
         </section>
       ) : null}
     </div>

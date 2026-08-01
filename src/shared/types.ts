@@ -99,6 +99,7 @@ export interface CheckResult {
  * UI-facing issue: a CheckResult plus rule metadata for expanded WAVE copy.
  */
 export interface Issue extends CheckResult {
+  id: string
   category: RuleCategory
   ruleLabel: string
   rationale: string

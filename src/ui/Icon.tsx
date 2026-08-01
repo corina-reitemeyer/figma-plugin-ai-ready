@@ -67,6 +67,24 @@ export function IconChevronRight(props: IconProps) {
   )
 }
 
+export function IconClose(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M6 6l12 12" />
+      <path d="M18 6 6 18" />
+    </Svg>
+  )
+}
+
+export function IconEye(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.75" />
+    </Svg>
+  )
+}
+
 /** Flat-top hexagon with a solid center dot (variables / tokens). */
 export function IconHexagon(props: IconProps) {
   return (

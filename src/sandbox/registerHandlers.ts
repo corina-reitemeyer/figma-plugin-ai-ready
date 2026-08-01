@@ -3,6 +3,7 @@ import { emit, on } from '@create-figma-plugin/utilities'
 import {
   AutofixRequestHandler,
   AutofixResultHandler,
+  ClearSelectionRequestHandler,
   CloseRequestHandler,
   GetPreferencesRequestHandler,
   GetPreferencesResultHandler,
@@ -37,6 +38,7 @@ function emitSelectionStatus(): void {
   const primary = selection[0]
   emit<SelectionStatusHandler>('SELECTION_STATUS', {
     count: selection.length,
+    primaryId: primary === undefined ? '' : primary.id,
     primaryName: primary === undefined ? '' : safeText(primary.name),
     primaryType: primary === undefined ? '' : primary.type
   })
@@ -130,6 +132,11 @@ export function registerHandlers(): void {
   })
 
   on<SelectionStatusRequestHandler>('SELECTION_STATUS_REQUEST', function () {
+    emitSelectionStatus()
+  })
+
+  on<ClearSelectionRequestHandler>('CLEAR_SELECTION_REQUEST', function () {
+    figma.currentPage.selection = []
     emitSelectionStatus()
   })
 

@@ -6,13 +6,15 @@ import {
   AutofixRequest,
   AutofixRequestHandler,
   AutofixResultHandler,
+  ClearSelectionRequestHandler,
   CloseRequestHandler,
   ScanCancelHandler,
   ScanProgressHandler,
   ScanRequestHandler,
   ScanResultHandler,
   SelectionStatusHandler,
-  SelectionStatusRequestHandler
+  SelectionStatusRequestHandler,
+  SelectNodeRequestHandler
 } from '../shared/messages'
 import { AuditReport, Issue } from '../shared/types'
 import { Button } from './Button'
@@ -21,7 +23,7 @@ import { LiveRegion } from './LiveRegion'
 import { ResultsTabId, ResultsTabs } from './ResultsTabs'
 import { StartScreen } from './StartScreen'
 import { strings } from './strings'
-import { AiView } from './views/AiView'
+import { AiView, sampleAiComponent } from './views/AiView'
 import { FileContextView } from './views/FileContextView'
 import { IssuesView } from './views/IssuesView'
 import { OverviewView } from './views/OverviewView'
@@ -30,6 +32,7 @@ type AppState = 'pre-scan' | 'scanning' | 'results'
 
 export function App() {
   const [selectionCount, setSelectionCount] = useState(0)
+  const [primaryId, setPrimaryId] = useState('')
   const [primaryName, setPrimaryName] = useState('')
   const [appState, setAppState] = useState<AppState>('pre-scan')
   const [status, setStatus] = useState<string>('')
@@ -51,6 +54,7 @@ export function App() {
 
     return on<SelectionStatusHandler>('SELECTION_STATUS', function (payload) {
       setSelectionCount(payload.count)
+      setPrimaryId(payload.primaryId)
       setPrimaryName(payload.primaryName)
     })
   }, [])
@@ -244,7 +248,29 @@ export function App() {
               {
                 id: 'aiView',
                 label: strings.tabAiView,
-                panel: <AiView />
+                panel: (
+                  <AiView
+                    selectionCount={selectionCount}
+                    component={
+                      selectionCount === 1 ? sampleAiComponent : null
+                    }
+                    onViewOnCanvas={
+                      selectionCount === 1 && primaryId.length > 0
+                        ? function () {
+                            emit<SelectNodeRequestHandler>(
+                              'SELECT_NODE_REQUEST',
+                              { nodeId: primaryId }
+                            )
+                          }
+                        : undefined
+                    }
+                    onDeselect={function () {
+                      emit<ClearSelectionRequestHandler>(
+                        'CLEAR_SELECTION_REQUEST'
+                      )
+                    }}
+                  />
+                )
               },
               {
                 id: 'fileContext',

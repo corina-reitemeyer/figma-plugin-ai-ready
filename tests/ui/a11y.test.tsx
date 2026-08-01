@@ -6,7 +6,7 @@ import { axe } from 'vitest-axe'
 import { ConfirmFixDialog } from '../../src/ui/ConfirmFixDialog'
 import { ResultsTabs } from '../../src/ui/ResultsTabs'
 import { StartScreen } from '../../src/ui/StartScreen'
-import { AiView } from '../../src/ui/views/AiView'
+import { AiView, sampleAiComponent } from '../../src/ui/views/AiView'
 import { FileContextView } from '../../src/ui/views/FileContextView'
 import { IssuesView } from '../../src/ui/views/IssuesView'
 import { OverviewView } from '../../src/ui/views/OverviewView'
@@ -76,8 +76,33 @@ describe('UI accessibility', () => {
     expect(await axe(container, axeOptions)).toHaveNoViolations()
   })
 
-  it('AiView has no axe violations', async () => {
-    const { container } = render(<AiView />)
+  it('AiView empty state has no axe violations', async () => {
+    const { container } = render(
+      <AiView selectionCount={0} component={null} />
+    )
+    expect(await axe(container, axeOptions)).toHaveNoViolations()
+  })
+
+  it('AiView multi-select state has no axe violations', async () => {
+    const { container } = render(
+      <AiView
+        selectionCount={3}
+        component={null}
+        onDeselect={function () {}}
+      />
+    )
+    expect(await axe(container, axeOptions)).toHaveNoViolations()
+  })
+
+  it('AiView with component has no axe violations', async () => {
+    const { container } = render(
+      <AiView
+        selectionCount={1}
+        component={sampleAiComponent}
+        onViewOnCanvas={function () {}}
+        onDeselect={function () {}}
+      />
+    )
     expect(await axe(container, axeOptions)).toHaveNoViolations()
   })
 

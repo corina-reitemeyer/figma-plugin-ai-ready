@@ -91,6 +91,8 @@ export interface SetPreferencesRequestHandler extends EventHandler {
 
 export type SelectionStatus = {
   count: number
+  /** First selected node id, when any. */
+  primaryId: string
   /** First selected node name, when any. */
   primaryName: string
   /** First selected node type, when any (e.g. FRAME, COMPONENT). */
@@ -99,6 +101,11 @@ export type SelectionStatus = {
 
 export interface SelectionStatusRequestHandler extends EventHandler {
   name: 'SELECTION_STATUS_REQUEST'
+  handler: () => void
+}
+
+export interface ClearSelectionRequestHandler extends EventHandler {
+  name: 'CLEAR_SELECTION_REQUEST'
   handler: () => void
 }
 

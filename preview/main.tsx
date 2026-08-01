@@ -5,7 +5,7 @@ import { Button } from '../src/ui/Button'
 import { ResultsTabId, ResultsTabs } from '../src/ui/ResultsTabs'
 import { StartScreen } from '../src/ui/StartScreen'
 import { strings } from '../src/ui/strings'
-import { AiView } from '../src/ui/views/AiView'
+import { AiView, sampleAiComponent } from '../src/ui/views/AiView'
 import { FileContextView } from '../src/ui/views/FileContextView'
 import { IssuesView } from '../src/ui/views/IssuesView'
 import { OverviewView } from '../src/ui/views/OverviewView'
@@ -53,23 +53,21 @@ function PreviewApp() {
           </select>
         </label>
 
-        {mode === 'start' ? (
-          <label>
-            Canvas selection count
-            <input
-              type="range"
-              min={0}
-              max={5}
-              value={selectionCount}
-              onInput={function (event) {
-                setSelectionCount(
-                  Number((event.currentTarget as HTMLInputElement).value)
-                )
-              }}
-            />
-            <span>{selectionCount}</span>
-          </label>
-        ) : null}
+        <label>
+          Canvas selection count
+          <input
+            type="range"
+            min={0}
+            max={5}
+            value={selectionCount}
+            onInput={function (event) {
+              setSelectionCount(
+                Number((event.currentTarget as HTMLInputElement).value)
+              )
+            }}
+          />
+          <span>{selectionCount}</span>
+        </label>
 
         {mode === 'start' ? (
           <label className="preview-check">
@@ -176,7 +174,24 @@ function PreviewApp() {
                   {
                     id: 'aiView',
                     label: strings.tabAiView,
-                    panel: <AiView />
+                    panel: (
+                      <AiView
+                        selectionCount={selectionCount}
+                        component={
+                          selectionCount === 1 ? sampleAiComponent : null
+                        }
+                        onViewOnCanvas={
+                          selectionCount === 1
+                            ? function () {
+                                setLastScan('view-on-canvas')
+                              }
+                            : undefined
+                        }
+                        onDeselect={function () {
+                          setSelectionCount(0)
+                        }}
+                      />
+                    )
                   },
                   {
                     id: 'fileContext',

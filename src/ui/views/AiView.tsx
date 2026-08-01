@@ -1,6 +1,7 @@
 import { h } from 'preact'
 
-import { IconVariants } from '../Icon'
+import { Button } from '../Button'
+import { IconClose, IconEye, IconVariants } from '../Icon'
 import { SafeText } from '../SafeText'
 import { strings } from '../strings'
 
@@ -12,22 +13,30 @@ export type AiValueRow = {
   kind: AiValueKind
 }
 
+export type AiVariantProperty = {
+  label: string
+  value: string
+}
+
 export type AiComponentPreview = {
   name: string
   kindLabel: string
   sourceLabel: string
-  variantProperties: string[]
+  variantProperties: AiVariantProperty[]
   layout: string[]
   values: AiValueRow[]
   description: string
 }
 
-/** Sample component matching the AI view draft for preview / empty state. */
+/** Sample component for preview when exactly one canvas layer is selected. */
 export const sampleAiComponent: AiComponentPreview = {
   name: 'Button/Primary',
   kindLabel: 'COMPONENT',
   sourceLabel: 'Design System',
-  variantProperties: ['Size: Medium', 'State: Default'],
+  variantProperties: [
+    { label: 'Size', value: 'Medium' },
+    { label: 'State', value: 'Default' }
+  ],
   layout: [
     'HORIZONTAL Auto Layout · 2 children',
     'Sizing: HUG (horizontal) × HUG (vertical)',
@@ -43,10 +52,53 @@ export const sampleAiComponent: AiComponentPreview = {
 }
 
 type AiViewProps = {
-  component?: AiComponentPreview
+  selectionCount?: number
+  /** Set when exactly one layer is selected. */
+  component?: AiComponentPreview | null
+  onViewOnCanvas?: () => void
+  onDeselect?: () => void
 }
 
-export function AiView({ component = sampleAiComponent }: AiViewProps) {
+export function AiView({
+  selectionCount = 0,
+  component = null,
+  onViewOnCanvas,
+  onDeselect
+}: AiViewProps) {
+  if (selectionCount > 1) {
+    return (
+      <div className="ai-view ai-view-empty" role="status">
+        <span className="ai-empty-icon" aria-hidden="true">
+          <IconVariants size={24} />
+        </span>
+        <p className="ai-empty-title">{strings.aiViewMultiTitle}</p>
+        <p className="ai-empty-body">{strings.aiViewMultiBody}</p>
+        {onDeselect !== undefined ? (
+          <div className="ai-empty-action">
+            <Button variant="outline" onClick={onDeselect}>
+              {strings.aiViewClearSelection}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (selectionCount !== 1 || component === null) {
+    return (
+      <div className="ai-view ai-view-empty" role="status">
+        <span className="ai-empty-icon" aria-hidden="true">
+          <IconVariants size={24} />
+        </span>
+        <p className="ai-empty-title">{strings.aiViewEmptyTitle}</p>
+        <p className="ai-empty-body">{strings.aiViewEmptyBody}</p>
+      </div>
+    )
+  }
+
+  const hasActions =
+    onViewOnCanvas !== undefined || onDeselect !== undefined
+
   return (
     <div className="ai-view">
       <div className="ai-identity">
@@ -65,6 +117,32 @@ export function AiView({ component = sampleAiComponent }: AiViewProps) {
             <SafeText value={component.sourceLabel} />
           </p>
         </div>
+        {hasActions ? (
+          <div className="ai-identity-actions">
+            {onViewOnCanvas !== undefined ? (
+              <button
+                type="button"
+                className="ai-identity-action"
+                onClick={onViewOnCanvas}
+                aria-label={strings.aiViewLocate}
+                title={strings.aiViewLocate}
+              >
+                <IconEye size={15} />
+              </button>
+            ) : null}
+            {onDeselect !== undefined ? (
+              <button
+                type="button"
+                className="ai-identity-action"
+                onClick={onDeselect}
+                aria-label={strings.aiViewDeselect}
+                title={strings.aiViewDeselect}
+              >
+                <IconClose size={14} />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <section className="ai-section" aria-labelledby="ai-variants-heading">
@@ -75,8 +153,13 @@ export function AiView({ component = sampleAiComponent }: AiViewProps) {
           <p className="ai-row-text ai-row-inline">
             {component.variantProperties.map(function (property) {
               return (
-                <span key={property}>
-                  <SafeText value={property} />
+                <span key={property.label} className="ai-variant-pair">
+                  <span className="ai-variant-label">
+                    <SafeText value={property.label} />
+                  </span>
+                  <span className="ai-variant-value">
+                    <SafeText value={property.value} />
+                  </span>
                 </span>
               )
             })}
@@ -114,9 +197,7 @@ export function AiView({ component = sampleAiComponent }: AiViewProps) {
                 </span>
                 <span
                   className={
-                    row.kind === 'token'
-                      ? 'ai-value-token'
-                      : 'ai-value-raw'
+                    row.kind === 'token' ? 'ai-value-token' : 'ai-value-raw'
                   }
                 >
                   {row.kind === 'token' ? (

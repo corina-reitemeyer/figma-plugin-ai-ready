@@ -694,10 +694,14 @@ select:focus-visible,
 .quick-fixes-card {
   cursor: default;
   flex-shrink: 0;
+  background: var(--mint-tint);
+  border-color: var(--mint);
+  box-shadow: var(--shadow-sm);
 }
 
 .quick-fixes-card:hover {
-  background: var(--paper);
+  background: var(--mint-tint);
+  border-color: var(--mint);
 }
 
 .fix-all-btn {
@@ -1039,9 +1043,22 @@ select:focus-visible,
 
 .filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
   gap: 6px;
   margin-bottom: 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.filters::-webkit-scrollbar {
+  display: none;
+}
+
+.filters .chip {
+  flex-shrink: 0;
 }
 
 .chip {

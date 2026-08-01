@@ -80,29 +80,6 @@ export function IssuesView({ report, onRequestFix }: IssuesViewProps) {
   return (
     <div className="issues-view">
       <div className="issues-body">
-        <div className="filters" role="group" aria-label={strings.filterByCategory}>
-          {CATEGORY_FILTERS.map(function (value) {
-            const label =
-              value === 'all' ? strings.filterAll : labelCategory(value)
-            return (
-              <button
-                key={value}
-                type="button"
-                className={
-                  categoryFilter === value ? 'chip chip-active' : 'chip'
-                }
-                aria-pressed={categoryFilter === value}
-                onClick={function () {
-                  setCategoryFilter(value)
-                  setExpandedId(null)
-                }}
-              >
-                {label}
-              </button>
-            )
-          })}
-        </div>
-
         {quickFixes.length > 0 && onRequestFix !== undefined ? (
           <div className="feature-card quick-fixes-card">
             <span
@@ -125,6 +102,29 @@ export function IssuesView({ report, onRequestFix }: IssuesViewProps) {
             </button>
           </div>
         ) : null}
+
+        <div className="filters" role="group" aria-label={strings.filterByCategory}>
+          {CATEGORY_FILTERS.map(function (value) {
+            const label =
+              value === 'all' ? strings.filterAll : labelCategory(value)
+            return (
+              <button
+                key={value}
+                type="button"
+                className={
+                  categoryFilter === value ? 'chip chip-active' : 'chip'
+                }
+                aria-pressed={categoryFilter === value}
+                onClick={function () {
+                  setCategoryFilter(value)
+                  setExpandedId(null)
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
 
         {filteredIssues.length === 0 ? (
           <p className="muted">{strings.noIssuesFilter}</p>

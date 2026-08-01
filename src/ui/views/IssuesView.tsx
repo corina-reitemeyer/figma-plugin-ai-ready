@@ -85,25 +85,27 @@ export function IssuesView({
     <div className="issues-view">
       <div className="issues-body">
         {quickFixes.length > 0 && onRequestFixAll !== undefined ? (
-          <div className="feature-card quick-fixes-card">
-            <span
-              className="feature-card-icon quick-fix-icon"
-              aria-hidden="true"
-            >
-              <IconSparkles size={18} />
-            </span>
-            <span className="feature-card-body">
-              <span className="feature-card-title">
-                {strings.quickFixes} · ({quickFixes.length})
+          <div className="quick-fixes-block">
+            <div className="feature-card quick-fixes-card">
+              <span
+                className="feature-card-icon quick-fix-icon"
+                aria-hidden="true"
+              >
+                <IconSparkles size={18} />
               </span>
-            </span>
-            <button
-              type="button"
-              className="bf-btn bf-btn-dark fix-all-btn"
-              onClick={handleFixAll}
-            >
-              {strings.fixAll}
-            </button>
+              <span className="feature-card-body">
+                <span className="feature-card-title">
+                  {strings.quickFixes} · ({quickFixes.length})
+                </span>
+              </span>
+              <button
+                type="button"
+                className="bf-btn bf-btn-dark fix-all-btn"
+                onClick={handleFixAll}
+              >
+                {strings.fixAll}
+              </button>
+            </div>
           </div>
         ) : null}
 

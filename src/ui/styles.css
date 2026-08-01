@@ -378,7 +378,7 @@ select:focus-visible,
 .results-tabs [role='tabpanel'] {
   flex: 1;
   overflow: auto;
-  padding: 16px;
+  padding: 24px 16px 16px;
   min-height: 0;
 }
 
@@ -606,8 +606,9 @@ select:focus-visible,
 }
 
 .feature-card-icon.quick-fix-icon {
-  background: var(--icon-quickfix-bg);
-  color: var(--icon-quickfix);
+  background: var(--ink);
+  color: var(--brand);
+  box-shadow: var(--shadow-sm);
 }
 
 .issue-card-icon.cat-naming {
@@ -681,7 +682,7 @@ select:focus-visible,
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px;
+  padding: 20px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -691,9 +692,18 @@ select:focus-visible,
   margin-bottom: 0;
 }
 
+.quick-fixes-block {
+  flex-shrink: 0;
+  padding: 4px 0 18px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
 .quick-fixes-card {
   cursor: default;
   flex-shrink: 0;
+  padding-top: 14px;
+  padding-bottom: 14px;
   background: var(--mint-tint);
   border-color: var(--mint);
   box-shadow: var(--shadow-sm);

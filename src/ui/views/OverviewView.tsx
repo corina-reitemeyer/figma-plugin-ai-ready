@@ -49,11 +49,18 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
       </div>
 
       <p className="counts" aria-label="Pass and issue breakdown">
-        <span className="count-passed">{report.passedChecks} Passed</span>
-        <span className="count-warning">
-          {report.issueCounts.warning} Warnings
+        <span className="count count-passed">
+          <span className="count-value">{report.passedChecks}</span>
+          <span className="count-label">Passed</span>
         </span>
-        <span className="count-error">{report.issueCounts.error} Errors</span>
+        <span className="count count-warning">
+          <span className="count-value">{report.issueCounts.warning}</span>
+          <span className="count-label">Warnings</span>
+        </span>
+        <span className="count count-error">
+          <span className="count-value">{report.issueCounts.error}</span>
+          <span className="count-label">Errors</span>
+        </span>
       </p>
 
       <ul className="category-gauges" aria-label="Category scores">

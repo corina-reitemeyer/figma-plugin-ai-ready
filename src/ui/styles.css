@@ -18,8 +18,8 @@
   --focus: #282e3e;
   --gauge-track: #f3efe6;
   --gauge-panel: #f3f4f8;
-  --icon-naming-bg: #d7e6f8;
-  --icon-naming: #3b6ea8;
+  --icon-naming-bg: #e0e7ff;
+  --icon-naming: #2563eb;
   --icon-variants-bg: #f3ebe0;
   --icon-variants: #b85c38;
   --icon-tokens-bg: #ebe4f8;
@@ -583,19 +583,36 @@ select:focus-visible,
 .counts {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  gap: 36px;
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
 }
 
-.count-passed {
+.count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.count-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.count-passed .count-value {
   color: var(--mint);
 }
-.count-warning {
+.count-warning .count-value {
   color: var(--warning);
 }
-.count-error {
+.count-error .count-value {
   color: var(--error);
 }
 

@@ -1,0 +1,61 @@
+{
+  "name": "figma-plugin-ai-ready",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Figma plugin that audits components for MCP/agent-readiness (naming, tokens, variants, docs).",
+  "license": "MIT",
+  "author": "Corina Reitemeyer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/corina-reitemeyer/figma-plugin-ai-ready.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@create-figma-plugin/ui": "^4.0.3",
+    "@create-figma-plugin/utilities": "^4.0.3",
+    "preact": ">=10"
+  },
+  "devDependencies": {
+    "@create-figma-plugin/build": "^4.0.3",
+    "@create-figma-plugin/tsconfig": "^4.0.3",
+    "@figma/plugin-typings": "1.109.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/preact": "^3.2.4",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "jsdom": "^27.4.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^3.2.4",
+    "vitest-axe": "^0.1.0"
+  },
+  "scripts": {
+    "build": "build-figma-plugin --typecheck --minify",
+    "watch": "build-figma-plugin --typecheck --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "figma-plugin": {
+    "editorType": [
+      "figma"
+    ],
+    "id": "figma-plugin-ai-ready",
+    "name": "Agent-Readiness Checker",
+    "main": "src/main.ts",
+    "ui": "src/ui.tsx",
+    "documentAccess": "dynamic-page",
+    "networkAccess": {
+      "allowedDomains": [
+        "none"
+      ]
+    }
+  }
+}

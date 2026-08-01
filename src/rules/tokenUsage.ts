@@ -75,7 +75,7 @@ function checkPaints(
 
 export const tokenUsageRule: Rule = {
   id: RULE_ID,
-  label: 'Token usage',
+  label: 'Use variables',
   category: 'tokens',
   targetTypes: ['COMPONENT', 'COMPONENT_SET'],
   severity: 'warning',

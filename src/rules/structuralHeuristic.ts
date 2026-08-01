@@ -23,7 +23,7 @@ function looksLikeComponent(node: FrameNode | GroupNode): boolean {
 
 export const structuralHeuristicRule: Rule = {
   id: RULE_ID,
-  label: 'Should this be a component?',
+  label: 'Looks like a component',
   category: 'structure',
   targetTypes: ['FRAME', 'GROUP'],
   severity: 'info',

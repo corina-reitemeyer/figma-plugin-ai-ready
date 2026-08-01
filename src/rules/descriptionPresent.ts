@@ -5,7 +5,7 @@ const RULE_ID = 'description-present'
 
 export const descriptionPresentRule: Rule = {
   id: RULE_ID,
-  label: 'Description present',
+  label: 'Component description',
   category: 'docs',
   targetTypes: ['COMPONENT', 'COMPONENT_SET'],
   severity: 'warning',

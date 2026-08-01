@@ -21,7 +21,7 @@ function checkComponentFrame(node: ComponentNode): CheckResult[] {
 
 export const autoLayoutUsageRule: Rule = {
   id: RULE_ID,
-  label: 'Auto Layout usage',
+  label: 'Auto Layout',
   category: 'structure',
   targetTypes: ['COMPONENT', 'COMPONENT_SET'],
   severity: 'warning',

@@ -11,7 +11,7 @@ Figma plugin that audits open-file components for **MCP / agent-readiness** — 
 | Naming | Default / opaque component names |
 | Tokens | Hard-coded paints vs variables / `inferredVariables` |
 | Variants | Incomplete variant matrices on component sets |
-| Structure | Auto Layout usage; optional muteable structural heuristic |
+| Structure | Auto Layout; optional muteable structural heuristic |
 | Docs & Publish | Missing descriptions; unpublished library components |
 
 **Not in v1:** Code Connect mapping coverage, Values Issues scope, assisted/bulk fixes, REST cross-file audits. Those are planned for v2 (Code Connect via offline CLI JSON import — not a live network call).

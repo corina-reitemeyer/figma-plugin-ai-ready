@@ -30,6 +30,18 @@ export const strings = {
     'Overview will show score, pass/issue counts, and category breakdown.',
   issuesPlaceholder:
     'Issues will list prioritized findings with why / impact / how to fix.',
+  filterByCategory: 'Filter by category',
+  filterAll: 'All',
+  quickFixes: 'Quick fixes',
+  fixAll: 'Fix all',
+  totalIssues: 'Total issues',
+  noIssuesFilter: 'No issues match this filter.',
+  showDetails: 'Show details',
+  hideDetails: 'Hide details',
+  whyMatters: 'Why this matters',
+  ifNotFixed: 'If you don’t fix this',
+  howToFix: 'How to fix',
+  fix: 'Fix',
   aiViewPlaceholder:
     'AI view will summarize how agents are likely to read this file.',
   fileContextPlaceholder:

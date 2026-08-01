@@ -3,160 +3,208 @@ import { h } from 'preact'
 import { useMemo, useState } from 'preact/hooks'
 
 import { SelectNodeRequestHandler } from '../../shared/messages'
-import { AuditReport, Issue, Severity } from '../../shared/types'
+import { AuditReport, Issue, RuleCategory } from '../../shared/types'
+import { CategoryIcon, labelCategory } from '../CategoryIcon'
+import { IconChevronRight, IconSparkles } from '../Icon'
 import { SafeText } from '../SafeText'
+import { strings } from '../strings'
+
+type CategoryFilter = RuleCategory | 'all'
 
 type IssuesViewProps = {
   report: AuditReport
   onRequestFix?: (issue: Issue) => void
 }
 
+const CATEGORY_FILTERS: CategoryFilter[] = [
+  'all',
+  'naming',
+  'tokens',
+  'variants',
+  'structure',
+  'docs'
+]
+
+function isAutofixable(issue: Issue): boolean {
+  return issue.fixTier === 'auto' && issue.autofixId !== undefined
+}
+
+function issueLocation(issue: Issue): string {
+  if (issue.pageName) {
+    return `${issue.nodeName} — Page: ${issue.pageName}`
+  }
+  return issue.nodeName
+}
+
 export function IssuesView({ report, onRequestFix }: IssuesViewProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [severityFilter, setSeverityFilter] = useState<Severity | 'all'>('all')
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
 
-  const issues = useMemo(
+  const filteredIssues = useMemo(
     function () {
-      const filtered =
-        severityFilter === 'all'
-          ? report.issues
-          : report.issues.filter((issue) => issue.severity === severityFilter)
-
-      if (report.scope !== 'file' && report.pageIds.length <= 1) {
-        return [{ pageName: null as string | null, issues: filtered }]
+      if (categoryFilter === 'all') {
+        return report.issues
       }
-
-      const groups = new Map<string, Issue[]>()
-      for (const issue of filtered) {
-        const key = issue.pageName ?? 'Unknown page'
-        const list = groups.get(key) ?? []
-        list.push(issue)
-        groups.set(key, list)
-      }
-      return Array.from(groups.entries()).map(function ([pageName, list]) {
-        return { pageName, issues: list }
-      })
+      return report.issues.filter((issue) => issue.category === categoryFilter)
     },
-    [report, severityFilter]
+    [report.issues, categoryFilter]
   )
+
+  const quickFixes = useMemo(
+    function () {
+      return filteredIssues.filter(isAutofixable)
+    },
+    [filteredIssues]
+  )
+
+  function selectNode(issue: Issue): void {
+    emit<SelectNodeRequestHandler>('SELECT_NODE_REQUEST', {
+      nodeId: issue.nodeId
+    })
+  }
+
+  function toggleExpanded(issue: Issue): void {
+    const next = expandedId === issue.id ? null : issue.id
+    setExpandedId(next)
+    selectNode(issue)
+  }
+
+  function handleFixAll(): void {
+    const first = quickFixes[0]
+    if (first === undefined || onRequestFix === undefined) {
+      return
+    }
+    onRequestFix(first)
+  }
 
   return (
     <div className="issues-view">
-      <div className="filters" role="group" aria-label="Filter by severity">
-        {(['all', 'error', 'warning', 'info'] as const).map(function (value) {
-          return (
-            <button
-              key={value}
-              type="button"
-              className={
-                severityFilter === value ? 'chip chip-active' : 'chip'
-              }
-              aria-pressed={severityFilter === value}
-              onClick={function () {
-                setSeverityFilter(value)
-              }}
+      <div className="issues-body">
+        <div className="filters" role="group" aria-label={strings.filterByCategory}>
+          {CATEGORY_FILTERS.map(function (value) {
+            const label =
+              value === 'all' ? strings.filterAll : labelCategory(value)
+            return (
+              <button
+                key={value}
+                type="button"
+                className={
+                  categoryFilter === value ? 'chip chip-active' : 'chip'
+                }
+                aria-pressed={categoryFilter === value}
+                onClick={function () {
+                  setCategoryFilter(value)
+                  setExpandedId(null)
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+
+        {quickFixes.length > 0 && onRequestFix !== undefined ? (
+          <div className="feature-card quick-fixes-card">
+            <span
+              className="feature-card-icon quick-fix-icon"
+              aria-hidden="true"
             >
-              {value}
+              <IconSparkles size={18} />
+            </span>
+            <span className="feature-card-body">
+              <span className="feature-card-title">
+                {strings.quickFixes} · ({quickFixes.length})
+              </span>
+            </span>
+            <button
+              type="button"
+              className="bf-btn bf-btn-dark fix-all-btn"
+              onClick={handleFixAll}
+            >
+              {strings.fixAll}
             </button>
-          )
-        })}
+          </div>
+        ) : null}
+
+        {filteredIssues.length === 0 ? (
+          <p className="muted">{strings.noIssuesFilter}</p>
+        ) : (
+          <ul className="issue-card-list">
+            {filteredIssues.map(function (issue) {
+              const expanded = expandedId === issue.id
+              return (
+                <li key={issue.id} className="issue-card-item">
+                  <button
+                    type="button"
+                    className="issue-card"
+                    aria-expanded={expanded}
+                    onClick={function () {
+                      toggleExpanded(issue)
+                    }}
+                  >
+                    <span
+                      className={`issue-card-icon cat-${issue.category}`}
+                      aria-hidden="true"
+                    >
+                      <CategoryIcon category={issue.category} />
+                    </span>
+                    <span className="issue-card-body">
+                      <span className="issue-card-title">
+                        <SafeText value={issue.ruleLabel} />
+                      </span>
+                      <span className="issue-card-sub muted">
+                        <SafeText value={issue.message} />
+                      </span>
+                      <span className="issue-card-meta">
+                        <SafeText value={issueLocation(issue)} />
+                      </span>
+                    </span>
+                    <IconChevronRight size={16} color="var(--muted-gray)" />
+                  </button>
+                  {expanded ? (
+                    <div className="issue-details">
+                      <p>
+                        <strong>{strings.whyMatters}</strong>
+                        <br />
+                        <SafeText value={issue.rationale} maxLength={2000} />
+                      </p>
+                      <p>
+                        <strong>{strings.ifNotFixed}</strong>
+                        <br />
+                        <SafeText
+                          value={issue.consequence}
+                          maxLength={2000}
+                        />
+                      </p>
+                      <p>
+                        <strong>{strings.howToFix}</strong>
+                        <br />
+                        <SafeText value={issue.fixHint} maxLength={2000} />
+                      </p>
+                      {isAutofixable(issue) && onRequestFix !== undefined ? (
+                        <button
+                          type="button"
+                          className="bf-btn bf-btn-dark fix-all-btn"
+                          onClick={function () {
+                            onRequestFix(issue)
+                          }}
+                        >
+                          {strings.fix}
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
 
-      {issues.every((group) => group.issues.length === 0) ? (
-        <p className="muted">No issues match this filter.</p>
-      ) : (
-        issues.map(function (group) {
-          return (
-            <section key={group.pageName ?? 'flat'} className="issue-group">
-              {group.pageName !== null ? (
-                <h3 className="section-title">
-                  <SafeText value={group.pageName} />
-                </h3>
-              ) : null}
-              <ul className="issue-list">
-                {group.issues.map(function (issue) {
-                  const expanded = expandedId === issue.id
-                  return (
-                    <li key={issue.id} className="issue-row">
-                      <div className="issue-main">
-                        <button
-                          type="button"
-                          className="issue-select"
-                          onClick={function () {
-                            emit<SelectNodeRequestHandler>(
-                              'SELECT_NODE_REQUEST',
-                              { nodeId: issue.nodeId }
-                            )
-                          }}
-                        >
-                          <span
-                            className={`severity severity-${issue.severity}`}
-                          >
-                            {issue.severity}
-                          </span>
-                          <span className="issue-copy">
-                            <SafeText value={issue.message} />
-                            <span className="muted">
-                              <SafeText value={issue.nodeName} />
-                              {issue.pageName
-                                ? ` · ${issue.pageName}`
-                                : ''}
-                            </span>
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className="text-button"
-                          aria-expanded={expanded}
-                          onClick={function () {
-                            setExpandedId(expanded ? null : issue.id)
-                          }}
-                        >
-                          {expanded ? 'Hide details' : 'Show details'}
-                        </button>
-                      </div>
-                      {expanded ? (
-                        <div className="issue-details">
-                          <p>
-                            <strong>Why this matters</strong>
-                            <br />
-                            <SafeText value={issue.rationale} maxLength={2000} />
-                          </p>
-                          <p>
-                            <strong>If you don’t fix this</strong>
-                            <br />
-                            <SafeText
-                              value={issue.consequence}
-                              maxLength={2000}
-                            />
-                          </p>
-                          <p>
-                            <strong>How to fix</strong>
-                            <br />
-                            <SafeText value={issue.fixHint} maxLength={2000} />
-                          </p>
-                          {issue.fixTier === 'auto' &&
-                          issue.autofixId !== undefined &&
-                          onRequestFix !== undefined ? (
-                            <button
-                              type="button"
-                              onClick={function () {
-                                onRequestFix(issue)
-                              }}
-                            >
-                              Fix
-                            </button>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          )
-        })
-      )}
+      <footer className="issues-footer" aria-label={strings.totalIssues}>
+        <span className="issues-footer-label">{strings.totalIssues}</span>
+        <span className="issues-total-badge">{filteredIssues.length}</span>
+      </footer>
     </div>
   )
 }

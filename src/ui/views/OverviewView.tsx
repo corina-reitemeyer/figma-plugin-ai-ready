@@ -5,16 +5,11 @@ import { SelectNodeRequestHandler } from '../../shared/messages'
 import {
   AuditReport,
   Issue,
-  RuleCategory,
   SCORE_BAND_LABELS,
   ScoreBand
 } from '../../shared/types'
-import {
-  IconChevronRight,
-  IconHash,
-  IconHexagon,
-  IconVariants
-} from '../Icon'
+import { CategoryIcon, labelCategory } from '../CategoryIcon'
+import { IconChevronRight, IconHexagon } from '../Icon'
 import { SafeText } from '../SafeText'
 import { strings } from '../strings'
 
@@ -156,19 +151,6 @@ function IssueCard({ issue }: { issue: Issue }) {
   )
 }
 
-function CategoryIcon({ category }: { category: RuleCategory }) {
-  switch (category) {
-    case 'variants':
-      return <IconVariants size={18} />
-    case 'naming':
-      return <IconHash size={18} />
-    case 'tokens':
-      return <IconHexagon size={18} />
-    default:
-      return <IconHash size={18} />
-  }
-}
-
 function ScoreRing({
   score,
   band,
@@ -219,23 +201,6 @@ function ScoreRing({
       <span className="score-number">{score}</span>
     </div>
   )
-}
-
-function labelCategory(category: string): string {
-  switch (category) {
-    case 'naming':
-      return 'Naming'
-    case 'tokens':
-      return 'Variables'
-    case 'variants':
-      return 'Variants'
-    case 'structure':
-      return 'Structure'
-    case 'docs':
-      return 'Docs'
-    default:
-      return category
-  }
 }
 
 function bandFor(score: number): ScoreBand {

@@ -123,6 +123,14 @@ export interface InventoryPageRow {
   score: number | null
 }
 
+/** Variable defined in-file but not referenced by scanned nodes. */
+export interface UnusedVariableRow {
+  id: string
+  name: string
+  collectionName: string
+  resolvedType: string
+}
+
 export interface InventorySummary {
   componentCount: number
   componentSetCount: number
@@ -134,6 +142,7 @@ export interface InventorySummary {
   /** Optional v1 taste; full Values scope is v2. */
   variableCount?: number
   unusedVariableCount?: number
+  unusedVariables?: UnusedVariableRow[]
 }
 
 export interface AuditReport {

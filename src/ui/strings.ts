@@ -45,5 +45,13 @@ export const strings = {
   aiViewPlaceholder:
     'AI view will summarize how agents are likely to read this file.',
   fileContextPlaceholder:
-    'File context will show inventory and scan metadata for what was audited.'
+    'File context will show inventory and scan metadata for what was audited.',
+  fileScanSection: 'Scan',
+  fileUnusedVariablesSection: 'Unused variables',
+  fileUnusedVariablesHint: 'Set up in this file but not used here',
+  filePagesSection: 'Pages',
+  fileComponentsSection: 'Components with issues',
+  fileOptionalChecksSection: 'Optional checks',
+  optionalLooksLikeComponent: 'Looks like a component',
+  optionalHoverDisabled: 'Hover & disabled states'
 } as const

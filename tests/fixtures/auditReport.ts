@@ -363,7 +363,7 @@ export const sampleReport: AuditReport = {
   scope: 'selection',
   pageIds: [],
   scannedAt: new Date().toISOString(),
-  durationMs: 42,
+  durationMs: 480,
   rulesetVersion: '1.0.0',
   overallScore: 69,
   band: 'needsWork',
@@ -422,18 +422,44 @@ export const sampleReport: AuditReport = {
     nodeCount: 20,
     unusedVariableCount: 4,
     variableCount: 12,
+    unusedVariables: [
+      {
+        id: 'VariableID:9:1',
+        name: 'color/legacy/brand-blue',
+        collectionName: 'Primitives',
+        resolvedType: 'COLOR'
+      },
+      {
+        id: 'VariableID:9:2',
+        name: 'space/xxl',
+        collectionName: 'Spacing',
+        resolvedType: 'FLOAT'
+      },
+      {
+        id: 'VariableID:9:3',
+        name: 'radius/pill-old',
+        collectionName: 'Primitives',
+        resolvedType: 'FLOAT'
+      },
+      {
+        id: 'VariableID:9:4',
+        name: 'opacity/disabled-alt',
+        collectionName: 'Primitives',
+        resolvedType: 'FLOAT'
+      }
+    ],
     pages: [
       {
         pageId: '0:1',
         pageName: 'Design System',
-        componentCount: 8,
+        componentCount: 9,
         componentSetCount: 2,
         score: 72
       },
       {
         pageId: '0:2',
         pageName: 'Marketing Site',
-        componentCount: 3,
+        componentCount: 6,
         componentSetCount: 1,
         score: 61
       }

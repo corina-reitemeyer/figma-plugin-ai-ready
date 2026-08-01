@@ -932,35 +932,173 @@ select:focus-visible,
   margin: 0 0 8px;
 }
 
-.meta-list {
-  margin: 0;
-}
+/* ——— File ——— */
 
-.meta-list > div {
+.file-context {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 8px;
 }
 
-.meta-list dt {
+.file-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-section-hint {
+  margin: -2px 0 0;
+  font-size: 12px;
+}
+
+.file-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper);
+  color: inherit;
+  text-align: left;
+  font-family: var(--font-sans);
+}
+
+.file-card-button {
+  appearance: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.file-card-button:hover {
+  background: var(--row);
+}
+
+.file-card-toggle {
+  cursor: default;
+}
+
+.file-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.file-card-icon.scan {
+  background: var(--icon-quickfix-bg);
+  color: var(--icon-quickfix);
+}
+
+.file-card-icon.variable {
+  background: var(--row);
   color: var(--muted);
 }
 
-.meta-list dd {
-  margin: 0;
+.file-card-icon.page {
+  background: var(--icon-naming-bg);
+  color: var(--icon-naming);
 }
 
-.page-table {
-  width: 100%;
-  border-collapse: collapse;
+.file-card-icon.component {
+  background: var(--icon-tokens-bg);
+  color: var(--icon-tokens);
 }
 
-.page-table th,
-.page-table td {
-  text-align: left;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--rule);
+.file-card-icon.cat-naming {
+  background: var(--icon-naming-bg);
+  color: var(--icon-naming);
+}
+
+.file-card-icon.cat-variants {
+  background: var(--icon-variants-bg);
+  color: var(--icon-variants);
+}
+
+.file-card-icon.cat-tokens {
+  background: var(--icon-tokens-bg);
+  color: var(--icon-tokens);
+}
+
+.file-card-icon.cat-structure {
+  background: var(--icon-structure-bg);
+  color: var(--icon-structure);
+}
+
+.file-card-icon.cat-docs {
+  background: var(--icon-docs-bg);
+  color: var(--icon-docs);
+}
+
+.file-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-card-sub {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.switch {
+  appearance: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--rule);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.switch-on {
+  background: #34c759;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+}
+
+.switch-on .switch-thumb {
+  transform: translateX(18px);
 }
 
 .confirm-dialog {

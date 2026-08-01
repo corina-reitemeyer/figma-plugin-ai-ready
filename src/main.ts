@@ -1,11 +1,9 @@
-import { once, showUI } from '@create-figma-plugin/utilities'
+import { showUI } from '@create-figma-plugin/utilities'
 
-import { CloseHandler } from './types'
+import { registerHandlers } from './sandbox/registerHandlers'
 
 export default function () {
-  once<CloseHandler>('CLOSE', function () {
-    figma.closePlugin()
-  })
+  registerHandlers()
 
   showUI({
     height: 280,

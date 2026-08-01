@@ -5,11 +5,18 @@ import {
   AutofixResultHandler,
   CloseRequestHandler,
   parseAutofixRequest,
+  parseScanRequest,
   parseSelectNodeRequest,
+  ScanCancelHandler,
+  ScanProgressHandler,
+  ScanRequestHandler,
+  ScanResultHandler,
   SelectNodeRequestHandler,
   SelectNodeResultHandler
 } from '../shared/messages'
 import { applyConfirmedAutofix } from './autofix'
+import { runAudit } from './runAudit'
+import { requestScanCancel } from './scanCancel'
 import { selectAndZoom } from './selectAndZoom'
 
 /**
@@ -51,6 +58,30 @@ export function registerHandlers(): void {
 
       const result = await applyConfirmedAutofix(request)
       emit<AutofixResultHandler>('AUTOFIX_RESULT', result)
+    })()
+  })
+
+  on<ScanCancelHandler>('SCAN_CANCEL', function () {
+    requestScanCancel()
+  })
+
+  on<ScanRequestHandler>('SCAN_REQUEST', function (payload) {
+    void (async function () {
+      const request = parseScanRequest(payload)
+      if (request === null) {
+        emit<ScanResultHandler>('SCAN_RESULT', {
+          ok: false,
+          reason: 'invalid-payload',
+          detail: 'Scan request failed validation.'
+        })
+        return
+      }
+
+      const result = await runAudit(request, function (progress) {
+        emit<ScanProgressHandler>('SCAN_PROGRESS', progress)
+      })
+
+      emit<ScanResultHandler>('SCAN_RESULT', result)
     })()
   })
 }

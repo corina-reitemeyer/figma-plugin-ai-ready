@@ -1,6 +1,6 @@
 import { EventHandler } from '@create-figma-plugin/utilities'
 
-import { AutofixId } from './types'
+import { AutofixId, AuditReport, ScopeRequest } from './types'
 import { isNonEmptyString } from './safeText'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -43,6 +43,18 @@ export interface AutofixRequestHandler extends EventHandler {
   handler: (payload: AutofixRequest) => void
 }
 
+export type ScanRequest = ScopeRequest
+
+export interface ScanRequestHandler extends EventHandler {
+  name: 'SCAN_REQUEST'
+  handler: (payload: ScanRequest) => void
+}
+
+export interface ScanCancelHandler extends EventHandler {
+  name: 'SCAN_CANCEL'
+  handler: () => void
+}
+
 // ——— sandbox → UI ———
 
 export type SelectNodeResult =
@@ -83,6 +95,34 @@ export interface SelectNodeResultHandler extends EventHandler {
 export interface AutofixResultHandler extends EventHandler {
   name: 'AUTOFIX_RESULT'
   handler: (payload: AutofixResult) => void
+}
+
+export type ScanProgressEvent = {
+  phase: 'loading' | 'scanning'
+  current: number
+  total: number
+  pageName?: string
+  message: string
+  targetCount?: number
+  largeFileWarning?: boolean
+}
+
+export interface ScanProgressHandler extends EventHandler {
+  name: 'SCAN_PROGRESS'
+  handler: (payload: ScanProgressEvent) => void
+}
+
+export type ScanResult =
+  | { ok: true; report: AuditReport }
+  | {
+      ok: false
+      reason: 'cancelled' | 'invalid-scope' | 'invalid-payload' | 'failed'
+      detail: string
+    }
+
+export interface ScanResultHandler extends EventHandler {
+  name: 'SCAN_RESULT'
+  handler: (payload: ScanResult) => void
 }
 
 // ——— Runtime guards (never trust UI payloads) ———
@@ -132,6 +172,32 @@ export function parseAutofixRequest(value: unknown): AutofixRequest | null {
       paintIndex: value.paintIndex,
       variableId: value.variableId.trim()
     }
+  }
+
+  return null
+}
+
+export function parseScanRequest(value: unknown): ScanRequest | null {
+  if (!isRecord(value) || typeof value.scope !== 'string') {
+    return null
+  }
+
+  if (value.scope === 'selection') {
+    return { scope: 'selection' }
+  }
+
+  if (value.scope === 'file') {
+    return { scope: 'file' }
+  }
+
+  if (value.scope === 'pages') {
+    if (!Array.isArray(value.pageIds)) {
+      return null
+    }
+    const pageIds = value.pageIds.filter(isNonEmptyString).map(function (id) {
+      return id.trim()
+    })
+    return { scope: 'pages', pageIds }
   }
 
   return null

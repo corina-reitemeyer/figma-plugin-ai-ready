@@ -5,6 +5,15 @@
 
 export type ScopeKind = 'selection' | 'pages' | 'file'
 
+/** What the UI asks the sandbox to audit. */
+export type ScopeRequest =
+  | { scope: 'selection' }
+  | { scope: 'pages'; pageIds: string[] }
+  | { scope: 'file' }
+
+/** Sentinel page id: sandbox resolves to `figma.currentPage`. */
+export const CURRENT_PAGE_SENTINEL = '__CURRENT__'
+
 export type Severity = 'error' | 'warning' | 'info'
 
 export type RuleCategory =

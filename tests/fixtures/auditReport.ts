@@ -365,6 +365,7 @@ export const sampleReport: AuditReport = {
   scannedAt: new Date().toISOString(),
   durationMs: 480,
   rulesetVersion: '1.0.0',
+  scored: true,
   overallScore: 69,
   band: 'needsWork',
   passedChecks: 54,
@@ -374,6 +375,7 @@ export const sampleReport: AuditReport = {
   categories: [
     {
       category: 'naming',
+      applicable: true,
       score: 95,
       passed: 12,
       failed: 1,
@@ -382,6 +384,7 @@ export const sampleReport: AuditReport = {
     },
     {
       category: 'tokens',
+      applicable: true,
       score: 68,
       passed: 10,
       failed: 4,
@@ -390,6 +393,7 @@ export const sampleReport: AuditReport = {
     },
     {
       category: 'variants',
+      applicable: true,
       score: 38,
       passed: 4,
       failed: 6,
@@ -398,6 +402,7 @@ export const sampleReport: AuditReport = {
     },
     {
       category: 'structure',
+      applicable: true,
       score: 91,
       passed: 14,
       failed: 1,
@@ -406,6 +411,7 @@ export const sampleReport: AuditReport = {
     },
     {
       category: 'docs',
+      applicable: true,
       score: 55,
       passed: 8,
       failed: 5,

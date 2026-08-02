@@ -24,6 +24,7 @@ type PreviewMode = 'start' | 'overview'
 function PreviewApp() {
   const [mode, setMode] = useState<PreviewMode>('overview')
   const [selectionCount, setSelectionCount] = useState(3)
+  const [aiLoading, setAiLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState<{
     current: number
@@ -158,6 +159,21 @@ function PreviewApp() {
           <span>{selectionCount}</span>
         </label>
 
+        {mode === 'overview' ? (
+          <label className="preview-check">
+            <input
+              type="checkbox"
+              checked={aiLoading}
+              onChange={function (event) {
+                setAiLoading(
+                  (event.currentTarget as HTMLInputElement).checked
+                )
+              }}
+            />
+            Simulate AI view loading
+          </label>
+        ) : null}
+
         {mode === 'start' ? (
           <label className="preview-check">
             <input
@@ -281,8 +297,11 @@ function PreviewApp() {
                       panel: (
                         <AiView
                           selectionCount={selectionCount}
+                          loading={aiLoading}
                           component={
-                            selectionCount === 1 ? sampleAiComponent : null
+                            selectionCount === 1 && !aiLoading
+                              ? sampleAiComponent
+                              : null
                           }
                           onViewOnCanvas={
                             selectionCount === 1

@@ -14,6 +14,18 @@ export const strings = {
   scanningDesign: 'Scanning your design…',
   reScan: 'Re-scan',
   scoreCaption: 'AI-readiness score',
+  scoreCaptionScoped:
+    'Based on naming, tokens, variants, structure, and docs we can read in this file.',
+  scoreFootnote:
+    'Does not include Code Connect or MCP output — verify those in Dev Mode when you hand off to an agent.',
+  scoreUnscoredTitle: 'Nothing auditable in this scope',
+  scoreUnscoredBody:
+    'Select a component, component set, or a frame that contains them — or scan the whole file. Selecting only an instance now resolves to its main component.',
+  categoryNotApplicable: 'N/A',
+  fixTierAuto: 'Auto-fix',
+  fixTierManual: 'Manual',
+  fixTierLegend:
+    'Auto-fix = plugin can apply with confirm. Manual = you change it in Figma.',
   statusReadyFile: 'No selection — scan the file.',
   statusReadyNamedLayer: '{name} selected.',
   statusReadyOneLayer: '1 layer selected.',
@@ -55,9 +67,10 @@ export const strings = {
   aiViewPlaceholder:
     'AI view will summarize how agents are likely to read this file.',
   aiViewEmptyTitle: 'Nothing selected',
-  aiViewEmptyBody: 'Select one component on the canvas.',
-  aiViewMultiTitle: 'Select one component',
-  aiViewMultiBody: 'AI view works with one component at a time.',
+  aiViewEmptyBody: 'Select one layer on the canvas.',
+  aiViewMultiTitle: 'Select one layer',
+  aiViewMultiBody: 'AI view works with one layer at a time.',
+  aiViewLoading: 'Loading AI view…',
   aiViewClearSelection: 'Clear selection',
   aiViewDeselect: 'Deselect',
   aiViewLocate: 'View on canvas',

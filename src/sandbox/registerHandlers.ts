@@ -1,6 +1,8 @@
 import { emit, on } from '@create-figma-plugin/utilities'
 
 import {
+  AiViewRequestHandler,
+  AiViewResultHandler,
   AutofixRequestHandler,
   AutofixResultHandler,
   ClearSelectionRequestHandler,
@@ -9,6 +11,7 @@ import {
   GetPreferencesResultHandler,
   ListPagesRequestHandler,
   ListPagesResultHandler,
+  parseAiViewRequest,
   parseAutofixRequest,
   parseScanRequest,
   parseSelectNodeRequest,
@@ -24,6 +27,7 @@ import {
   SetPreferencesRequestHandler
 } from '../shared/messages'
 import { safeText } from '../shared/safeText'
+import { buildAiViewPreview } from './aiViewPreview'
 import { applyConfirmedAutofix } from './autofix'
 import {
   readScanPreferences,
@@ -87,6 +91,23 @@ export function registerHandlers(): void {
 
       const result = await selectAndZoom(request.nodeId)
       emit<SelectNodeResultHandler>('SELECT_NODE_RESULT', result)
+    })()
+  })
+
+  on<AiViewRequestHandler>('AI_VIEW_REQUEST', function (payload) {
+    void (async function () {
+      const request = parseAiViewRequest(payload)
+      if (request === null) {
+        emit<AiViewResultHandler>('AI_VIEW_RESULT', {
+          ok: false,
+          nodeId: '',
+          reason: 'invalid-id'
+        })
+        return
+      }
+
+      const result = await buildAiViewPreview(request.nodeId)
+      emit<AiViewResultHandler>('AI_VIEW_RESULT', result)
     })()
   })
 

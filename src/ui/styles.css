@@ -467,6 +467,13 @@ select:focus-visible,
 .band-poor {
   color: var(--error);
 }
+.band-unscored {
+  color: var(--muted);
+}
+
+.score-ring.band-unscored .score-ring-progress {
+  stroke: var(--rule);
+}
 
 .band-label {
   margin: 8px 0 0;
@@ -480,9 +487,47 @@ select:focus-visible,
   color: var(--muted);
 }
 
+.score-scope {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  max-width: 280px;
+  text-align: center;
+}
+
+.score-footnote {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .score-meta {
   margin: 2px 0 0;
   font-size: 11px;
+}
+
+.overview-unscored .score-hero-unscored {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px 8px;
+  text-align: center;
+}
+
+.score-unscored-body {
+  margin: 0;
+  max-width: 280px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted-gray);
+}
+
+.score-number-na {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .counts {
@@ -650,6 +695,47 @@ select:focus-visible,
   font-size: 13px;
   font-weight: 700;
   color: var(--ink);
+}
+
+.issue-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.issue-card-title-row .issue-card-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fix-tier-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+.fix-tier-auto {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.fix-tier-manual {
+  background: var(--row);
+  color: var(--muted);
+}
+
+.fix-tier-legend {
+  margin: 0 0 4px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .feature-card-sub,
@@ -826,6 +912,63 @@ select:focus-visible,
   text-align: center;
   gap: 8px;
   padding: 32px 24px;
+}
+
+.ai-view-loading {
+  pointer-events: none;
+}
+
+.ai-skeleton {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--row) 0%,
+    var(--paper) 50%,
+    var(--row) 100%
+  );
+  background-size: 200% 100%;
+  animation: ai-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.ai-skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.ai-skeleton-line {
+  height: 12px;
+}
+
+.ai-skeleton-line-wide {
+  width: 70%;
+}
+
+.ai-skeleton-line-narrow {
+  width: 40%;
+  margin-top: 6px;
+}
+
+.ai-skeleton-title {
+  width: 96px;
+  height: 10px;
+  margin-bottom: 8px;
+}
+
+.ai-skeleton-block {
+  width: 100%;
+  height: 36px;
+}
+
+@keyframes ai-skeleton-pulse {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 .ai-empty-icon {

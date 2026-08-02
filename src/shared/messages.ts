@@ -1,5 +1,6 @@
 import { EventHandler } from '@create-figma-plugin/utilities'
 
+import { AiComponentPreview } from './aiView'
 import {
   parseScanPreferences,
   ScanPreferences
@@ -114,7 +115,33 @@ export interface SelectionStatusHandler extends EventHandler {
   handler: (payload: SelectionStatus) => void
 }
 
+export type AiViewRequest = {
+  nodeId: string
+}
+
+export interface AiViewRequestHandler extends EventHandler {
+  name: 'AI_VIEW_REQUEST'
+  handler: (payload: AiViewRequest) => void
+}
+
 // ——— sandbox → UI ———
+
+export type AiViewResult =
+  | {
+      ok: true
+      nodeId: string
+      preview: AiComponentPreview
+    }
+  | {
+      ok: false
+      nodeId: string
+      reason: 'invalid-id' | 'not-found' | 'not-scene'
+    }
+
+export interface AiViewResultHandler extends EventHandler {
+  name: 'AI_VIEW_RESULT'
+  handler: (payload: AiViewResult) => void
+}
 
 export type SelectNodeResult =
   | {
@@ -189,6 +216,13 @@ export interface ScanResultHandler extends EventHandler {
 export function parseSelectNodeRequest(
   value: unknown
 ): SelectNodeRequest | null {
+  if (!isRecord(value) || !isNonEmptyString(value.nodeId)) {
+    return null
+  }
+  return { nodeId: value.nodeId.trim() }
+}
+
+export function parseAiViewRequest(value: unknown): AiViewRequest | null {
   if (!isRecord(value) || !isNonEmptyString(value.nodeId)) {
     return null
   }

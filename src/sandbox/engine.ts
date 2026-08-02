@@ -165,6 +165,7 @@ export async function runEngine(
     scannedAt: new Date().toISOString(),
     durationMs: options.durationMs,
     rulesetVersion: RULESET_VERSION,
+    scored: scored.scored,
     overallScore: scored.overallScore,
     band: scored.band,
     passedChecks: scored.passedChecks,

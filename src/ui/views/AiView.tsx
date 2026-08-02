@@ -1,34 +1,19 @@
 import { h } from 'preact'
 
+import {
+  AiComponentPreview,
+  AiValueKind,
+  AiValueRow,
+  AiVariantProperty
+} from '../../shared/aiView'
 import { Button } from '../Button'
 import { IconClose, IconEye, IconVariants } from '../Icon'
 import { SafeText } from '../SafeText'
 import { strings } from '../strings'
 
-export type AiValueKind = 'raw' | 'token'
+export type { AiComponentPreview, AiValueKind, AiValueRow, AiVariantProperty }
 
-export type AiValueRow = {
-  label: string
-  value: string
-  kind: AiValueKind
-}
-
-export type AiVariantProperty = {
-  label: string
-  value: string
-}
-
-export type AiComponentPreview = {
-  name: string
-  kindLabel: string
-  sourceLabel: string
-  variantProperties: AiVariantProperty[]
-  layout: string[]
-  values: AiValueRow[]
-  description: string
-}
-
-/** Sample component for preview when exactly one canvas layer is selected. */
+/** Sample component for preview harness and a11y tests. */
 export const sampleAiComponent: AiComponentPreview = {
   name: 'Button/Primary',
   kindLabel: 'COMPONENT',
@@ -53,14 +38,60 @@ export const sampleAiComponent: AiComponentPreview = {
 
 type AiViewProps = {
   selectionCount?: number
-  /** Set when exactly one layer is selected. */
+  loading?: boolean
+  /** Set when exactly one layer is selected and preview is ready. */
   component?: AiComponentPreview | null
   onViewOnCanvas?: () => void
   onDeselect?: () => void
 }
 
+function AiViewSkeleton() {
+  return (
+    <div
+      className="ai-view ai-view-loading"
+      role="status"
+      aria-busy="true"
+      aria-label={strings.aiViewLoading}
+    >
+      <div className="ai-identity">
+        <span className="ai-skeleton ai-skeleton-icon" aria-hidden="true" />
+        <div className="ai-identity-body">
+          <span className="ai-skeleton ai-skeleton-line ai-skeleton-line-wide" />
+          <span className="ai-skeleton ai-skeleton-line ai-skeleton-line-narrow" />
+        </div>
+      </div>
+      <section className="ai-section" aria-hidden="true">
+        <span className="ai-skeleton ai-skeleton-title" />
+        <div className="ai-row">
+          <span className="ai-skeleton ai-skeleton-block" />
+        </div>
+      </section>
+      <section className="ai-section" aria-hidden="true">
+        <span className="ai-skeleton ai-skeleton-title" />
+        <ul className="ai-row-list">
+          <li className="ai-row">
+            <span className="ai-skeleton ai-skeleton-block" />
+          </li>
+          <li className="ai-row">
+            <span className="ai-skeleton ai-skeleton-block" />
+          </li>
+        </ul>
+      </section>
+      <section className="ai-section" aria-hidden="true">
+        <span className="ai-skeleton ai-skeleton-title" />
+        <ul className="ai-row-list">
+          <li className="ai-row">
+            <span className="ai-skeleton ai-skeleton-block" />
+          </li>
+        </ul>
+      </section>
+    </div>
+  )
+}
+
 export function AiView({
   selectionCount = 0,
+  loading = false,
   component = null,
   onViewOnCanvas,
   onDeselect
@@ -84,6 +115,10 @@ export function AiView({
     )
   }
 
+  if (selectionCount === 1 && loading) {
+    return <AiViewSkeleton />
+  }
+
   if (selectionCount !== 1 || component === null) {
     return (
       <div className="ai-view ai-view-empty" role="status">
@@ -98,6 +133,7 @@ export function AiView({
 
   const hasActions =
     onViewOnCanvas !== undefined || onDeselect !== undefined
+  const showVariants = component.variantProperties.length > 0
 
   return (
     <div className="ai-view">
@@ -145,27 +181,29 @@ export function AiView({
         ) : null}
       </div>
 
-      <section className="ai-section" aria-labelledby="ai-variants-heading">
-        <h3 id="ai-variants-heading" className="ai-section-title">
-          {strings.aiVariantProperties}
-        </h3>
-        <div className="ai-row">
-          <p className="ai-row-text ai-row-inline">
-            {component.variantProperties.map(function (property) {
-              return (
-                <span key={property.label} className="ai-variant-pair">
-                  <span className="ai-variant-label">
-                    <SafeText value={property.label} />
+      {showVariants ? (
+        <section className="ai-section" aria-labelledby="ai-variants-heading">
+          <h3 id="ai-variants-heading" className="ai-section-title">
+            {strings.aiVariantProperties}
+          </h3>
+          <div className="ai-row">
+            <p className="ai-row-text ai-row-inline">
+              {component.variantProperties.map(function (property) {
+                return (
+                  <span key={property.label} className="ai-variant-pair">
+                    <span className="ai-variant-label">
+                      <SafeText value={property.label} />
+                    </span>
+                    <span className="ai-variant-value">
+                      <SafeText value={property.value} />
+                    </span>
                   </span>
-                  <span className="ai-variant-value">
-                    <SafeText value={property.value} />
-                  </span>
-                </span>
-              )
-            })}
-          </p>
-        </div>
-      </section>
+                )
+              })}
+            </p>
+          </div>
+        </section>
+      ) : null}
 
       <section className="ai-section" aria-labelledby="ai-layout-heading">
         <h3 id="ai-layout-heading" className="ai-section-title">

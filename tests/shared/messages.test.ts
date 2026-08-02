@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  parseAiViewRequest,
   parseAutofixRequest,
   parseSelectNodeRequest
 } from '../../src/shared/messages'
@@ -17,6 +18,20 @@ describe('parseSelectNodeRequest', () => {
     expect(parseSelectNodeRequest({})).toBeNull()
     expect(parseSelectNodeRequest({ nodeId: '' })).toBeNull()
     expect(parseSelectNodeRequest({ nodeId: 1 })).toBeNull()
+  })
+})
+
+describe('parseAiViewRequest', () => {
+  it('accepts a valid payload', () => {
+    expect(parseAiViewRequest({ nodeId: ' 3:4 ' })).toEqual({
+      nodeId: '3:4'
+    })
+  })
+
+  it('rejects invalid payloads', () => {
+    expect(parseAiViewRequest(null)).toBeNull()
+    expect(parseAiViewRequest({})).toBeNull()
+    expect(parseAiViewRequest({ nodeId: '' })).toBeNull()
   })
 })
 

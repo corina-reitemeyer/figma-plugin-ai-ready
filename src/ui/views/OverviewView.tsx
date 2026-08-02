@@ -9,7 +9,7 @@ import {
   ScoreBand
 } from '../../shared/types'
 import { CategoryIcon, labelCategory } from '../CategoryIcon'
-import { IconChevronRight, IconHexagon } from '../Icon'
+import { IconChevronRight, IconHexagon, IconVariants } from '../Icon'
 import { SafeText } from '../SafeText'
 import { formatScanScopeLabel } from '../scopeLabel'
 import { strings } from '../strings'
@@ -33,6 +33,27 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
     report.inventory.componentCount +
       report.inventory.componentSetCount +
       report.inventory.frameCount
+  const unscored = !report.scored
+
+  if (unscored) {
+    return (
+      <div className="overview overview-unscored">
+        <div className="score-hero score-hero-unscored" role="status">
+          <span className="ai-empty-icon" aria-hidden="true">
+            <IconVariants size={24} />
+          </span>
+          <p className="band-label band-unscored">{strings.scoreUnscoredTitle}</p>
+          <p className="score-unscored-body">{strings.scoreUnscoredBody}</p>
+          <p className="score-meta muted">
+            {formatScanScopeLabel(report, nodeCount)} ·{' '}
+            {report.inventory.componentCount} components ·{' '}
+            {formatRecency(report.scannedAt)}
+          </p>
+        </div>
+        <p className="score-footnote muted">{strings.scoreFootnote}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="overview">
@@ -40,9 +61,15 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
         className="score-hero"
         aria-label={`Overall score ${report.overallScore}, ${bandLabel}`}
       >
-        <ScoreRing score={report.overallScore} band={report.band} size={RING_SIZE} stroke={RING_STROKE} />
+        <ScoreRing
+          score={report.overallScore}
+          band={report.band}
+          size={RING_SIZE}
+          stroke={RING_STROKE}
+        />
         <p className={`band-label band-${report.band}`}>{bandLabel}</p>
         <p className="score-caption">{strings.scoreCaption}</p>
+        <p className="score-scope muted">{strings.scoreCaptionScoped}</p>
         <p className="score-meta muted">
           {formatScanScopeLabel(report, nodeCount)} ·{' '}
           {report.inventory.componentCount} components ·{' '}
@@ -67,6 +94,25 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
 
       <ul className="category-gauges" aria-label="Category scores">
         {report.categories.map(function (category) {
+          if (!category.applicable) {
+            return (
+              <li key={category.category} className="category-gauge">
+                <div
+                  className="score-ring score-ring-compact band-unscored"
+                  style={{ width: CAT_RING_SIZE, height: CAT_RING_SIZE }}
+                  aria-label={`${labelCategory(category.category)} not applicable`}
+                >
+                  <span className="score-number score-number-na">
+                    {strings.categoryNotApplicable}
+                  </span>
+                </div>
+                <span className="category-gauge-label">
+                  {labelCategory(category.category)}
+                </span>
+              </li>
+            )
+          }
+
           const band = bandFor(category.score)
           return (
             <li key={category.category} className="category-gauge">
@@ -84,6 +130,8 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
           )
         })}
       </ul>
+
+      <p className="score-footnote muted">{strings.scoreFootnote}</p>
 
       {unusedCount > 0 ? (
         <button type="button" className="feature-card" onClick={onOpenIssues}>
@@ -175,7 +223,8 @@ function ScoreRing({
 }) {
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference
+  const offset =
+    circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference
   const center = size / 2
 
   return (

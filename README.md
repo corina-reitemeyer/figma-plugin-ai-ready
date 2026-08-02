@@ -16,6 +16,8 @@ Figma plugin that audits open-file components for **MCP / agent-readiness** — 
 
 **Not in v1:** Code Connect mapping coverage, Values Issues scope, assisted/bulk fixes, REST cross-file audits. Those are planned for v2 (Code Connect via offline CLI JSON import — not a live network call).
 
+See [docs/agent-readiness-matrix.md](docs/agent-readiness-matrix.md) for what agents need via MCP, what this offline plugin can detect or auto-fix, and what stays deferred.
+
 ## Security & privacy
 
 - Fully **offline** — `networkAccess.allowedDomains: ["none"]`. No analytics or telemetry.
@@ -33,7 +35,7 @@ Figma plugin that audits open-file components for **MCP / agent-readiness** — 
 5. On **Overview**, note overall score / band and top issues; click an issue to select it on the canvas.
 6. Open **Issues**, expand a finding, read Why / Consequence / How to fix.
 7. For a rename or bind-inferred finding, click **Fix** → confirm → verify Undo works.
-8. Open **File context** for inventory and the Code Connect v1 deferral note.
+8. Open **File context** for inventory. Overview footnotes what the score covers (and that Code Connect is verified in Dev Mode, not in this plugin).
 
 ## Assistive tech smoke checklist
 

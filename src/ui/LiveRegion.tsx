@@ -12,7 +12,11 @@ export function LiveRegion({
   politeness = 'polite'
 }: LiveRegionProps) {
   return (
-    <div className="live-region" aria-live={politeness} aria-atomic="true">
+    <div
+      className="live-region sr-only"
+      aria-live={politeness}
+      aria-atomic="true"
+    >
       <SafeText value={message} />
     </div>
   )

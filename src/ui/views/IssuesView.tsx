@@ -84,6 +84,8 @@ export function IssuesView({
   return (
     <div className="issues-view">
       <div className="issues-body">
+        <p className="fix-tier-legend muted">{strings.fixTierLegend}</p>
+
         {quickFixes.length > 0 && onRequestFixAll !== undefined ? (
           <div className="quick-fixes-block">
             <div className="feature-card quick-fixes-card">
@@ -162,8 +164,21 @@ export function IssuesView({
                       <CategoryIcon category={issue.category} />
                     </span>
                     <span className="issue-card-body">
-                      <span className="issue-card-title">
-                        <SafeText value={issue.ruleLabel} />
+                      <span className="issue-card-title-row">
+                        <span className="issue-card-title">
+                          <SafeText value={issue.ruleLabel} />
+                        </span>
+                        <span
+                          className={
+                            isAutofixable(issue)
+                              ? 'fix-tier-badge fix-tier-auto'
+                              : 'fix-tier-badge fix-tier-manual'
+                          }
+                        >
+                          {isAutofixable(issue)
+                            ? strings.fixTierAuto
+                            : strings.fixTierManual}
+                        </span>
                       </span>
                       <span className="issue-card-sub muted">
                         <SafeText value={issue.message} />

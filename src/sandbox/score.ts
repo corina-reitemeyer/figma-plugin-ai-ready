@@ -21,6 +21,8 @@ export type CheckInstance = {
 }
 
 export type ScoreSummary = {
+  /** False when no applicable checks — do not treat overallScore as success. */
+  scored: boolean
   overallScore: number
   band: ScoreBand
   categories: CategoryResult[]
@@ -33,7 +35,8 @@ export type ScoreSummary = {
 /**
  * Build per-category and overall scores.
  * N/A instances are excluded from the denominator.
- * Categories with zero applicable checks are omitted from the overall average.
+ * Categories with zero applicable checks are marked applicable: false (N/A in UI).
+ * When nothing is applicable, scored is false (empty / unscored — not Good 100).
  */
 export function scoreAudit(
   instances: readonly CheckInstance[],
@@ -76,7 +79,8 @@ export function scoreAudit(
     if (applicable.length === 0) {
       categories.push({
         category,
-        score: 100,
+        applicable: false,
+        score: 0,
         passed: 0,
         failed: 0,
         issueCount,
@@ -103,6 +107,7 @@ export function scoreAudit(
 
     categories.push({
       category,
+      applicable: true,
       score: clampScore((numerator / denominator) * 100),
       passed,
       failed,
@@ -112,22 +117,37 @@ export function scoreAudit(
   }
 
   const scoredCategories = categories.filter(function (category) {
-    return category.passed + category.failed > 0
+    return category.applicable
   })
 
-  let overallScore = 100
-  if (scoredCategories.length > 0) {
-    let sum = 0
-    let weights = 0
-    for (const category of scoredCategories) {
-      const weight = CATEGORY_WEIGHTS[category.category]
-      sum += category.score * weight
-      weights += weight
+  if (scoredCategories.length === 0) {
+    return {
+      scored: false,
+      overallScore: 0,
+      band: 'unscored',
+      categories,
+      passedChecks,
+      failedChecks,
+      naChecks,
+      issueCounts: {
+        error: issues.filter((issue) => issue.severity === 'error').length,
+        warning: issues.filter((issue) => issue.severity === 'warning').length,
+        info: issues.filter((issue) => issue.severity === 'info').length
+      }
     }
-    overallScore = clampScore(weights === 0 ? 100 : sum / weights)
   }
 
+  let sum = 0
+  let weights = 0
+  for (const category of scoredCategories) {
+    const weight = CATEGORY_WEIGHTS[category.category]
+    sum += category.score * weight
+    weights += weight
+  }
+  const overallScore = clampScore(weights === 0 ? 100 : sum / weights)
+
   return {
+    scored: true,
     overallScore,
     band: scoreBand(overallScore),
     categories,

@@ -130,6 +130,13 @@ describe('UI accessibility', () => {
     expect(await axe(container, axeOptions)).toHaveNoViolations()
   })
 
+  it('AiView loading state has no axe violations', async () => {
+    const { container } = render(
+      <AiView selectionCount={1} loading={true} component={null} />
+    )
+    expect(await axe(container, axeOptions)).toHaveNoViolations()
+  })
+
   it('FileContextView has no axe violations', async () => {
     const { container } = render(<FileContextView report={sampleReport} />)
     expect(await axe(container, axeOptions)).toHaveNoViolations()

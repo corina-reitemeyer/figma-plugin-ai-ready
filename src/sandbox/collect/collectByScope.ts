@@ -1,7 +1,8 @@
 import { CURRENT_PAGE_SENTINEL, ScopeRequest } from '../../shared/types'
 import { isScanCancelled } from '../scanCancel'
-import { collectFromPage, collectFromRoot, mergeTargets } from './collectFromRoot'
+import { collectFromPage, mergeTargets } from './collectFromRoot'
 import { ensurePageLoaded } from './pageHelpers'
+import { collectTargetsFromSelection } from './resolveSelectionTargets'
 import { CollectResult, ProgressCallback } from './types'
 
 async function collectSelection(
@@ -14,8 +15,9 @@ async function collectSelection(
     message: 'Scanning selection…'
   })
 
-  const groups = figma.currentPage.selection.map(collectFromRoot)
-  const targets = mergeTargets(groups)
+  const targets = await collectTargetsFromSelection(
+    figma.currentPage.selection
+  )
 
   onProgress?.({
     phase: 'scanning',

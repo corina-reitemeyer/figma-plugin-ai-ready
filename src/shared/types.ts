@@ -29,7 +29,7 @@ export type FixTier = 'auto' | 'manual'
 
 export type AutofixId = 'rename-convention' | 'bind-inferred'
 
-export type ScoreBand = 'good' | 'needsWork' | 'poor'
+export type ScoreBand = 'good' | 'needsWork' | 'poor' | 'unscored'
 
 /** Node types rules may target in v1. */
 export type AuditNodeType =
@@ -108,6 +108,8 @@ export interface Issue extends CheckResult {
 
 export interface CategoryResult {
   category: RuleCategory
+  /** False when no applicable checks ran for this category (show N/A, not 100). */
+  applicable: boolean
   score: number
   passed: number
   failed: number
@@ -152,6 +154,11 @@ export interface AuditReport {
   scannedAt: string
   durationMs: number
   rulesetVersion: string
+  /**
+   * False when zero applicable checks ran (empty scope or nothing auditable).
+   * UI must not present this as Good / 100.
+   */
+  scored: boolean
   overallScore: number
   band: ScoreBand
   passedChecks: number
@@ -178,5 +185,6 @@ export const RULE_CATEGORIES: readonly RuleCategory[] = [
 export const SCORE_BAND_LABELS: Record<ScoreBand, string> = {
   good: 'Good',
   needsWork: 'Needs work',
-  poor: 'Poor'
+  poor: 'Poor',
+  unscored: 'Not scored'
 }

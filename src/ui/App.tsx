@@ -2,7 +2,10 @@ import { emit, on } from '@create-figma-plugin/utilities'
 import { h } from 'preact'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 
+import { AiComponentPreview } from '../shared/aiView'
 import {
+  AiViewRequestHandler,
+  AiViewResultHandler,
   AutofixRequest,
   AutofixRequestHandler,
   AutofixResultHandler,
@@ -24,7 +27,7 @@ import { LiveRegion } from './LiveRegion'
 import { ResultsTabId, ResultsTabs } from './ResultsTabs'
 import { StartScreen } from './StartScreen'
 import { strings } from './strings'
-import { AiView, sampleAiComponent } from './views/AiView'
+import { AiView } from './views/AiView'
 import {
   FixAllItem,
   FixAllPhase,
@@ -61,6 +64,8 @@ export function App() {
   const [selectionCount, setSelectionCount] = useState(0)
   const [primaryId, setPrimaryId] = useState('')
   const [primaryName, setPrimaryName] = useState('')
+  const [aiPreview, setAiPreview] = useState<AiComponentPreview | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
   const [appState, setAppState] = useState<AppState>('pre-scan')
   const [status, setStatus] = useState<string>('')
   const [progress, setProgress] = useState<{
@@ -77,6 +82,7 @@ export function App() {
   const [fixBusy, setFixBusy] = useState(false)
   const [fixAll, setFixAll] = useState<FixAllSession | null>(null)
   const fixAllRef = useRef<FixAllSession | null>(null)
+  const primaryIdRef = useRef('')
 
   useEffect(function () {
     fixAllRef.current = fixAll
@@ -86,9 +92,37 @@ export function App() {
     emit<SelectionStatusRequestHandler>('SELECTION_STATUS_REQUEST')
 
     return on<SelectionStatusHandler>('SELECTION_STATUS', function (payload) {
+      primaryIdRef.current = payload.primaryId
       setSelectionCount(payload.count)
       setPrimaryId(payload.primaryId)
       setPrimaryName(payload.primaryName)
+
+      if (payload.count === 1 && payload.primaryId.length > 0) {
+        setAiLoading(true)
+        setAiPreview(null)
+        emit<AiViewRequestHandler>('AI_VIEW_REQUEST', {
+          nodeId: payload.primaryId
+        })
+        return
+      }
+
+      setAiLoading(false)
+      setAiPreview(null)
+    })
+  }, [])
+
+  useEffect(function () {
+    return on<AiViewResultHandler>('AI_VIEW_RESULT', function (result) {
+      if (result.nodeId.length > 0 && result.nodeId !== primaryIdRef.current) {
+        return
+      }
+
+      setAiLoading(false)
+      if (result.ok) {
+        setAiPreview(result.preview)
+        return
+      }
+      setAiPreview(null)
     })
   }, [])
 
@@ -190,7 +224,9 @@ export function App() {
           })
           setStatusPoliteness('polite')
           setStatus(
-            `Quick fixes complete. Score ${result.report.overallScore}, ${result.report.issues.length} issues.`
+            result.report.scored
+              ? `Quick fixes complete. Score ${result.report.overallScore}, ${result.report.issues.length} issues.`
+              : `Quick fixes complete. Nothing auditable in this scope.`
           )
           return
         }
@@ -210,7 +246,9 @@ export function App() {
         setActiveTab('overview')
         setStatusPoliteness('polite')
         setStatus(
-          `Scan complete. Score ${result.report.overallScore}, ${result.report.issues.length} issues.`
+          result.report.scored
+            ? `Scan complete. Score ${result.report.overallScore}, ${result.report.issues.length} issues.`
+            : 'Scan complete. Nothing auditable in this scope.'
         )
         return
       }
@@ -410,8 +448,9 @@ export function App() {
                   panel: (
                     <AiView
                       selectionCount={selectionCount}
+                      loading={aiLoading}
                       component={
-                        selectionCount === 1 ? sampleAiComponent : null
+                        selectionCount === 1 ? aiPreview : null
                       }
                       onViewOnCanvas={
                         selectionCount === 1 && primaryId.length > 0

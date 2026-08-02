@@ -11,9 +11,9 @@ export const publishStatusRule: Rule = {
   severity: 'warning',
   mutable: false,
   rationale:
-    'Published, up-to-date library components are what consumers and agents typically pull into product files.',
+    'Published library components are what other files (and AI tools) usually see. Unpublished work stays private to this file.',
   consequence:
-    'Unpublished or changed components mean agents may read stale library context or miss the component entirely.',
+    'If the latest version is not published, teams and AI may build from an old component — or miss it completely.',
   run(node: SceneNode, ctx: RuleContext): CheckResult[] {
     if (node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') {
       return []
@@ -26,9 +26,9 @@ export const publishStatusRule: Rule = {
         finding({
           ruleId: RULE_ID,
           node,
-          message: 'Publish status not applicable for this node.',
+          message: 'Publish status is not available for this component.',
           severity: 'info',
-          fixHint: 'No action needed.',
+          fixHint: 'Nothing to do here.',
           na: true
         })
       ]
@@ -43,10 +43,10 @@ export const publishStatusRule: Rule = {
         finding({
           ruleId: RULE_ID,
           node,
-          message: 'Component is unpublished.',
+          message: 'This component is not published to the library yet.',
           severity: 'warning',
           fixHint:
-            'Publish this component to your team library so consumers/agents get the latest definition.'
+            'Publish it to your team library so other files and AI tools can use the real component.'
         })
       ]
     }
@@ -55,10 +55,10 @@ export const publishStatusRule: Rule = {
       finding({
         ruleId: RULE_ID,
         node,
-        message: 'Component has unpublished changes.',
+        message: 'This component has changes that are not published yet.',
         severity: 'warning',
         fixHint:
-          'Publish the latest changes (or discard them) so library consumers are not on a stale version.'
+          'Publish the update (or discard the changes) so everyone is looking at the same version.'
       })
     ]
   }

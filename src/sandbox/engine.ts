@@ -1,5 +1,6 @@
 import { RULESET_VERSION } from '../config/defaults'
 import { rules as defaultRules } from '../rules'
+import { STRUCTURAL_TIP_CAP } from '../rules/structuralHeuristic'
 import {
   AuditReport,
   CheckResult,
@@ -12,6 +13,10 @@ import { safeText } from '../shared/safeText'
 import { AuditTarget } from './collect/types'
 import { buildInventory } from './inventory'
 import { CheckInstance, scoreAudit } from './score'
+
+const TIP_RULE_CAPS: ReadonlyMap<string, number> = new Map([
+  ['structural-heuristic', STRUCTURAL_TIP_CAP]
+])
 
 function ruleApplies(rule: Rule, target: AuditTarget): boolean {
   return rule.targetTypes.includes(target.nodeType)
@@ -93,7 +98,18 @@ export async function runEngine(
         continue
       }
 
-      const rawResults = rule.run(target.node, ctx)
+      let rawResults: CheckResult[]
+      try {
+        rawResults = rule.run(target.node, ctx)
+      } catch (error) {
+        // One rule/node failure must not abort the whole scan (Figma API edge cases).
+        console.warn(
+          `[agent-readiness] rule ${rule.id} failed on ${target.nodeId}`,
+          error
+        )
+        continue
+      }
+
       const annotated = rawResults.map(function (result) {
         return {
           ...result,
@@ -129,29 +145,51 @@ export async function runEngine(
         continue
       }
 
-      instances.push({
-        category: rule.category,
-        severity: rule.severity,
-        passed: false,
-        na: false,
-        issueCount: findings.length
+      const scoringFindings = findings.filter(function (result) {
+        return result.excludeFromScore !== true
+      })
+      const tipFindings = findings.filter(function (result) {
+        return result.excludeFromScore === true
       })
 
-      for (const result of findings) {
+      // Tips still surface in Issues, but do not fail the score.
+      if (scoringFindings.length === 0) {
+        instances.push({
+          category: rule.category,
+          severity: rule.severity,
+          passed: true,
+          na: false,
+          issueCount: 0
+        })
+      } else {
+        instances.push({
+          category: rule.category,
+          severity: rule.severity,
+          passed: false,
+          na: false,
+          issueCount: scoringFindings.length
+        })
+      }
+
+      for (const result of scoringFindings) {
+        issues.push(toIssue(rule, result))
+      }
+      for (const result of tipFindings) {
         issues.push(toIssue(rule, result))
       }
     }
   }
 
-  const scored = scoreAudit(instances, issues)
-  const inventory = buildInventory(options.targets, issues)
+  const cappedIssues = capTipIssues(issues)
+  const scored = scoreAudit(instances, cappedIssues)
+  const inventory = buildInventory(options.targets, cappedIssues)
 
   const severityRank: Record<Issue['severity'], number> = {
     error: 0,
     warning: 1,
     info: 2
   }
-  issues.sort(function (a, b) {
+  cappedIssues.sort(function (a, b) {
     const rank = severityRank[a.severity] - severityRank[b.severity]
     if (rank !== 0) {
       return rank
@@ -173,7 +211,35 @@ export async function runEngine(
     naChecks: scored.naChecks,
     issueCounts: scored.issueCounts,
     categories: scored.categories,
-    issues,
+    issues: cappedIssues,
     inventory
   }
+}
+
+/** Keep soft tips useful without flooding Issues. */
+function capTipIssues(issues: Issue[]): Issue[] {
+  const tipCounts = new Map<string, number>()
+  const kept: Issue[] = []
+
+  for (const issue of issues) {
+    if (issue.excludeFromScore !== true) {
+      kept.push(issue)
+      continue
+    }
+
+    const cap = TIP_RULE_CAPS.get(issue.ruleId)
+    if (cap === undefined) {
+      kept.push(issue)
+      continue
+    }
+
+    const used = tipCounts.get(issue.ruleId) ?? 0
+    if (used >= cap) {
+      continue
+    }
+    tipCounts.set(issue.ruleId, used + 1)
+    kept.push(issue)
+  }
+
+  return kept
 }

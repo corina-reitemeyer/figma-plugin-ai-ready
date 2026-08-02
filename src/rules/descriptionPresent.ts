@@ -11,9 +11,9 @@ export const descriptionPresentRule: Rule = {
   severity: 'warning',
   mutable: false,
   rationale:
-    'Component descriptions give agents usage context (purpose, states, accessibility notes) beyond the visual tree.',
+    'A short description explains what the component is for — when to use it, and anything that is not obvious from the picture alone.',
   consequence:
-    'Without a description, agents guess intent and may generate the wrong API or omit important constraints.',
+    'Without that note, AI has to guess. It may pick the wrong use, skip important states, or miss accessibility needs.',
   run(node: SceneNode): CheckResult[] {
     if (node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') {
       return []
@@ -28,10 +28,10 @@ export const descriptionPresentRule: Rule = {
       finding({
         ruleId: RULE_ID,
         node,
-        message: 'Component has no description.',
+        message: 'This component has no description.',
         severity: 'warning',
         fixHint:
-          'Add a short description covering purpose, key props/variants, and any a11y or usage notes for implementers/agents.'
+          'In the right panel, add a short description: what it is, when to use it, and any do/don’t notes.'
       })
     ]
   }

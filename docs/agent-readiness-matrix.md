@@ -25,13 +25,15 @@ Two lanes: **design-system readiness** (library components, tokens, variants, do
 | Signal | Offline Plugin API | This plugin | Fix tier |
 | --- | --- | --- | --- |
 | Component / set naming | Yes | Yes | **Auto-fix** (`rename-convention`) when default/opaque |
-| Bound fills/strokes + unique inferred variable | Yes | Yes (top-level paints) | **Auto-fix** (`bind-inferred`) |
+| Frame / group default names | Yes | Yes (default/copy names only) | **Auto-fix** (`rename-convention`) |
+| Bound fills/strokes + unique inferred variable | Yes | Yes (component + frame paints) | **Auto-fix** (`bind-inferred`) |
 | Unbound colors (no unique inference) | Yes | Yes | **Manual** |
 | Variant matrix completeness | Yes | Yes | **Manual** |
-| Auto Layout on component | Yes | Yes (top-level / set defaultVariant) | **Manual** |
+| Auto Layout on component / frame | Yes | Yes (frames with 2+ children) | **Manual** |
+| Nested instances under a selected frame | Yes | Resolved to main component / set | (enables audit)
 | Component descriptions | Yes | Yes | **Manual** |
 | Publish status | Yes | Yes | **Manual** |
-| Frames that look like components | Yes | Muteable heuristic | **Manual** |
+| Frames that look like components | Yes | Muteable tip (multi-signal + reuse; no score impact; max 5/scan) | **Manual** tip |
 | Instance as selection | Yes | Resolves to main component / set | (enables audit) |
 | Variable `codeSyntax` | Yes | Not checked (backlog) | — |
 | Nested tokens / deep Auto Layout | Yes | Partial / not deep-walked (backlog) | — |

@@ -36,7 +36,7 @@ describe('variantCompletenessRule', () => {
       mutedRuleIds: new Set(),
       publishStatusByNodeId: new Map()
     })
-    expect(results[0]?.message).toMatch(/Missing 3/)
+    expect(results[0]?.message).toMatch(/3 variant combination/)
   })
 
   it('passes a complete matrix', () => {

@@ -84,8 +84,6 @@ export function IssuesView({
   return (
     <div className="issues-view">
       <div className="issues-body">
-        <p className="fix-tier-legend muted">{strings.fixTierLegend}</p>
-
         {quickFixes.length > 0 && onRequestFixAll !== undefined ? (
           <div className="quick-fixes-block">
             <div className="feature-card quick-fixes-card">

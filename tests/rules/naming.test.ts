@@ -12,6 +12,15 @@ function mockComponent(name: string): ComponentNode {
   } as unknown as ComponentNode
 }
 
+function mockFrame(name: string): FrameNode {
+  return {
+    id: '2:1',
+    name,
+    type: 'FRAME',
+    children: []
+  } as unknown as FrameNode
+}
+
 describe('suggestPascalName', () => {
   it('converts default names', () => {
     expect(suggestPascalName('Frame 123')).toBe('Frame123')
@@ -36,5 +45,43 @@ describe('namingRule', () => {
       publishStatusByNodeId: new Map()
     })
     expect(results).toEqual([])
+  })
+
+  it('flags default frame names but allows sentence-case screens', () => {
+    const ctx = {
+      mutedRuleIds: new Set(),
+      publishStatusByNodeId: new Map()
+    }
+    const defaultFrame = namingRule.run(mockFrame('Frame 12'), ctx)
+    expect(defaultFrame[0]?.autofixId).toBe('rename-convention')
+
+    const screen = namingRule.run(mockFrame('Checkout header'), ctx)
+    expect(screen).toEqual([])
+  })
+
+  it('does not read property definitions on variant components', () => {
+    const set = {
+      id: 'set:1',
+      name: 'Button',
+      type: 'COMPONENT_SET'
+    } as unknown as ComponentSetNode
+    const variant = {
+      id: '1:9',
+      name: 'Size=Medium, State=Default',
+      type: 'COMPONENT',
+      parent: set,
+      get componentPropertyDefinitions() {
+        throw new Error(
+          'Can only get component property definitions of a component set or non-variant component'
+        )
+      }
+    } as unknown as ComponentNode
+
+    expect(() =>
+      namingRule.run(variant, {
+        mutedRuleIds: new Set(),
+        publishStatusByNodeId: new Map()
+      })
+    ).not.toThrow()
   })
 })

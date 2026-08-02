@@ -60,9 +60,9 @@ export const strings = {
   noIssuesFilter: 'No issues match this filter.',
   showDetails: 'Show details',
   hideDetails: 'Hide details',
-  whyMatters: 'Why this matters',
-  ifNotFixed: 'If you don’t fix this',
-  howToFix: 'How to fix',
+  whyMatters: 'Why it matters',
+  ifNotFixed: 'What goes wrong for AI',
+  howToFix: 'What to do',
   fix: 'Fix',
   aiViewPlaceholder:
     'AI view will summarize how agents are likely to read this file.',

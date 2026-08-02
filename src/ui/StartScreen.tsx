@@ -34,15 +34,9 @@ function statusMessage(selectionCount: number, primaryName: string): string {
   return strings.statusReadyLayers.replace('{count}', String(selectionCount))
 }
 
-function scanButtonLabel(selectionCount: number, primaryName: string): string {
+function scanButtonLabel(selectionCount: number): string {
   if (selectionCount === 0) {
     return strings.runScanFile
-  }
-  if (primaryName.length > 0 && selectionCount === 1) {
-    return strings.runScanNamed.replace('{name}', primaryName)
-  }
-  if (primaryName.length > 0) {
-    return strings.runScanNamed.replace('{name}', primaryName)
   }
   return strings.runScanSelection
 }
@@ -65,7 +59,7 @@ export function StartScreen({
         ? strings.scanningDesign
         : statusMessage(selectionCount, name)
 
-  const buttonLabel = scanButtonLabel(selectionCount, name)
+  const buttonLabel = scanButtonLabel(selectionCount)
 
   return (
     <div className="start-screen">

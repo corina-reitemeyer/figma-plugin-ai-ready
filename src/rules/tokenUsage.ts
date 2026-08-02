@@ -23,6 +23,7 @@ function checkPaints(
 
   const results: CheckResult[] = []
   const inferred = geometryNode.inferredVariables?.[field]
+  const surface = field === 'fills' ? 'fill' : 'stroke'
 
   paints.forEach(function (paint, index) {
     if (!isSolidPaint(paint) || paintBound(paint)) {
@@ -36,7 +37,7 @@ function checkPaints(
         finding({
           ruleId: RULE_ID,
           node: reportNode,
-          message: `Hardcoded ${field}[${index}] matches an existing variable but is not bound.`,
+          message: `This ${surface} matches a color variable but is not linked to it.`,
           severity: 'warning',
           fixTier: 'auto',
           autofixId: 'bind-inferred',
@@ -46,10 +47,9 @@ function checkPaints(
             variableId
           },
           fixHint:
-            'Bind this paint to the inferred variable so agents emit token references instead of raw hex.'
+            'Link the color to that variable. Then AI can use your design tokens instead of a one-off hex value.'
         })
       )
-      // Point autofix at the geometry node that owns the paint.
       const last = results[results.length - 1]
       if (last !== undefined) {
         last.nodeId = geometryNode.id
@@ -62,10 +62,10 @@ function checkPaints(
       finding({
         ruleId: RULE_ID,
         node: reportNode,
-        message: `Hardcoded solid ${field}[${index}] is not bound to a variable.`,
+        message: `This ${surface} uses a hardcoded color instead of a variable.`,
         severity: 'info',
         fixHint:
-          'Bind the color to a design token/variable (or style) that maps to your code theme API.'
+          'Apply a color variable from your library (or create one). That keeps the design and code on the same tokens.'
       })
     )
   })
@@ -73,29 +73,30 @@ function checkPaints(
   return results
 }
 
+function checkNodePaints(node: SceneNode & GeometryMixin): CheckResult[] {
+  return [
+    ...checkPaints(node, node, 'fills'),
+    ...checkPaints(node, node, 'strokes')
+  ]
+}
+
 export const tokenUsageRule: Rule = {
   id: RULE_ID,
   label: 'Use variables',
   category: 'tokens',
-  targetTypes: ['COMPONENT', 'COMPONENT_SET'],
+  targetTypes: ['COMPONENT', 'COMPONENT_SET', 'FRAME'],
   severity: 'warning',
   mutable: false,
   rationale:
-    'Bound variables tell MCP/codegen which design tokens to use instead of baking in raw values.',
+    'Color variables are the shared language between design and code. When a fill is linked to a variable, AI can reuse that token instead of inventing a new hex.',
   consequence:
-    'Agents emit magic numbers/hex values that drift when tokens change and are harder to theme.',
+    'Hardcoded colors show up as one-off values in code. Themes break more easily, and the design system drifts.',
   run(node: SceneNode): CheckResult[] {
     if (node.type === 'COMPONENT_SET') {
-      return [
-        ...checkPaints(node, node.defaultVariant, 'fills'),
-        ...checkPaints(node, node.defaultVariant, 'strokes')
-      ]
+      return checkNodePaints(node.defaultVariant)
     }
-    if (node.type === 'COMPONENT') {
-      return [
-        ...checkPaints(node, node, 'fills'),
-        ...checkPaints(node, node, 'strokes')
-      ]
+    if (node.type === 'COMPONENT' || node.type === 'FRAME') {
+      return checkNodePaints(node)
     }
     return []
   }

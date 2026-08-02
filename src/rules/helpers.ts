@@ -15,6 +15,7 @@ export function finding(options: {
   autofixId?: AutofixId
   autofixPayload?: CheckResult['autofixPayload']
   na?: boolean
+  excludeFromScore?: boolean
 }): CheckResult {
   return {
     ruleId: options.ruleId,
@@ -26,7 +27,8 @@ export function finding(options: {
     autofixId: options.autofixId,
     autofixPayload: options.autofixPayload,
     fixHint: options.fixHint,
-    na: options.na
+    na: options.na,
+    excludeFromScore: options.excludeFromScore
   }
 }
 

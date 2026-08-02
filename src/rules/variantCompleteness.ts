@@ -42,9 +42,9 @@ export const variantCompletenessRule: Rule = {
   severity: 'warning',
   mutable: false,
   rationale:
-    'Agents and Code Connect map variants from the full property matrix. Missing combinations look like incomplete APIs.',
+    'Variant properties (like Size and State) should cover every combination you actually need. That matrix is what AI and code tools use as the component’s options.',
   consequence:
-    'Generated code may omit states, invent fake variants, or fail when a designer later adds the missing combination.',
+    'Missing combinations make the component look incomplete. AI may skip a state, invent one that does not exist, or break when you add it later.',
   run(node: SceneNode): CheckResult[] {
     if (node.type !== 'COMPONENT_SET') {
       return []
@@ -61,10 +61,10 @@ export const variantCompletenessRule: Rule = {
         finding({
           ruleId: RULE_ID,
           node,
-          message: 'Component set has no variant properties defined.',
+          message: 'This component set has no variant properties yet.',
           severity: 'warning',
           fixHint:
-            'Add variant properties (e.g. Size, State) so the set describes a clear matrix.'
+            'Add properties like Size or State so the set clearly lists the options designers and AI can choose from.'
         })
       ]
     }
@@ -77,10 +77,10 @@ export const variantCompletenessRule: Rule = {
         return finding({
           ruleId: RULE_ID,
           node,
-          message: `Variant property “${group.property}” has fewer than 2 options.`,
+          message: `“${group.property}” only has one option. Variants need at least two.`,
           severity: 'info',
           fixHint:
-            'Add the missing options, or convert a Yes/No variant into a boolean component property.'
+            'Add another value, or turn a simple on/off choice into a boolean property instead of a variant.'
         })
       })
     }
@@ -116,10 +116,10 @@ export const variantCompletenessRule: Rule = {
       finding({
         ruleId: RULE_ID,
         node,
-        message: `Missing ${missing.length} variant combination(s) (e.g. ${preview}).`,
+        message: `${missing.length} variant combination(s) are missing (for example ${preview}).`,
         severity: 'warning',
         fixHint:
-          'Add the missing variants, or remove unused property values from the variant matrix.'
+          'Add the missing variants in the set, or remove property values you do not need.'
       })
     ]
   }

@@ -93,6 +93,11 @@ export interface CheckResult {
   fixHint: string
   /** When true, excluded from score denominator. */
   na?: boolean
+  /**
+   * Soft tip: still shown in Issues, but does not fail the score.
+   * Used for optional heuristics like “looks like a component”.
+   */
+  excludeFromScore?: boolean
 }
 
 /**

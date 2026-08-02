@@ -106,7 +106,7 @@ export function AiView({
         <p className="ai-empty-body">{strings.aiViewMultiBody}</p>
         {onDeselect !== undefined ? (
           <div className="ai-empty-action">
-            <Button variant="outline" onClick={onDeselect}>
+            <Button variant="secondary" size="compact" onClick={onDeselect}>
               {strings.aiViewClearSelection}
             </Button>
           </div>

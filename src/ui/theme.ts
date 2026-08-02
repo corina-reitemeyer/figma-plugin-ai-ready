@@ -11,7 +11,7 @@ export const color = {
   mintTint: '#d4f7ea',
   ink: '#282e3e',
   muted: '#586380',
-  mutedGray: '#6b7289',
+  mutedGray: '#586380',
   canvas: '#ffffff',
   paperWhite: '#ffffff',
   rule: '#e2e5ec',
@@ -37,12 +37,24 @@ export const font = {
 } as const
 
 export const radius = {
-  buttons: 4,
+  buttons: 200,
   inputs: 4,
   cards: 8,
   rows: 14,
-  badge: 10,
+  badge: 6,
   pills: 200
+} as const
+
+/** Plugin type scale — keep UI roles on these steps. */
+export const type = {
+  display: { size: 36, weight: 700 },
+  titleLg: { size: 16, weight: 700 },
+  title: { size: 14, weight: 700 },
+  section: { size: 13, weight: 700 },
+  bodyStrong: { size: 13, weight: 600 },
+  body: { size: 12, weight: 400 },
+  caption: { size: 11, weight: 500 },
+  micro: { size: 10, weight: 700 }
 } as const
 
 export const shadow = {

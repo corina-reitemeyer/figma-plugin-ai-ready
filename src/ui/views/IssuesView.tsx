@@ -4,6 +4,7 @@ import { useMemo, useState } from 'preact/hooks'
 
 import { SelectNodeRequestHandler } from '../../shared/messages'
 import { AuditReport, Issue, RuleCategory, Severity } from '../../shared/types'
+import { Button } from '../Button'
 import { CategoryIcon, labelCategory } from '../CategoryIcon'
 import { IconChevronRight, IconSparkles } from '../Icon'
 import { SafeText } from '../SafeText'
@@ -104,13 +105,13 @@ export function IssuesView({
                   {strings.quickFixes} · ({quickFixes.length})
                 </span>
               </span>
-              <button
-                type="button"
-                className="bf-btn bf-btn-dark fix-all-btn"
+              <Button
+                variant="primary"
+                size="compact"
                 onClick={handleFixAll}
               >
                 {strings.fixAll}
-              </button>
+              </Button>
             </div>
           </div>
         ) : null}
@@ -219,15 +220,15 @@ export function IssuesView({
                         <SafeText value={issue.fixHint} maxLength={2000} />
                       </p>
                       {isAutofixable(issue) && onRequestFix !== undefined ? (
-                        <button
-                          type="button"
-                          className="bf-btn bf-btn-dark fix-all-btn"
+                        <Button
+                          variant="primary"
+                          size="compact"
                           onClick={function () {
                             onRequestFix(issue)
                           }}
                         >
                           {strings.fix}
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
                   ) : null}

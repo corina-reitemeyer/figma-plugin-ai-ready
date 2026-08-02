@@ -6,7 +6,8 @@
   --mint-tint: #d4f7ea;
   --ink: #282e3e;
   --muted: #586380;
-  --muted-gray: #6b7289;
+  /* Alias — use --muted for secondary text */
+  --muted-gray: var(--muted);
   --canvas: #ffffff;
   --paper: #ffffff;
   --rule: #e2e5ec;
@@ -32,7 +33,7 @@
   --icon-docs: #db2777;
   --icon-quickfix-bg: #d4f7ea;
   --icon-quickfix: #15803d;
-  --badge-total: #dc2626;
+  --badge-total: var(--ink);
   --gap: 8px;
   --gap-lg: 16px;
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -191,22 +192,37 @@ select:focus-visible,
   padding: 0 16px 12px;
 }
 
-/* ——— Buttons (ported bf-* classes) ——— */
+/* ——— Buttons: primary / secondary / tertiary ——— */
 
 .bf-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: 40px;
+  padding: 10px 18px;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 200px;
   transition:
     background-color 100ms ease,
     border-color 100ms ease,
-    box-shadow 100ms ease;
+    box-shadow 100ms ease,
+    color 100ms ease;
   white-space: nowrap;
   font-family: var(--font-sans);
+}
+
+.bf-btn-compact {
+  min-height: 32px;
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+.bf-btn-full {
+  width: 100%;
 }
 
 .bf-btn:disabled {
@@ -214,80 +230,92 @@ select:focus-visible,
   opacity: 0.5;
 }
 
+/* Primary — brand lime, one main action */
 .bf-btn-primary {
   background: var(--brand);
   color: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 200px;
-  box-shadow: var(--shadow-sm);
+  border: none;
+  box-shadow: var(--shadow-glow);
 }
 
 .bf-btn-primary:not(:disabled):hover {
   background: var(--brand-hover);
 }
 
+.bf-btn-primary:not(:disabled):active {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Secondary — outlined */
+.bf-btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+
+.bf-btn-secondary:not(:disabled):hover {
+  background: var(--tint);
+}
+
+/* Tertiary — quiet text */
+.bf-btn-tertiary {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.bf-btn-tertiary:not(:disabled):hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* Legacy class aliases (map old names → new roles) */
 .bf-btn-cta {
   background: var(--brand);
   color: var(--ink);
   border: none;
-  border-radius: 200px;
   box-shadow: var(--shadow-glow);
 }
-
 .bf-btn-cta:not(:disabled):hover {
   background: var(--brand-hover);
 }
-
-.bf-btn-cta:not(:disabled):active {
-  box-shadow: var(--shadow-sm);
-}
-
-.bf-btn-dark {
-  background: var(--ink);
-  color: var(--paper);
-  border: 1px solid var(--ink);
-  border-radius: 200px;
-  padding: 8px 16px;
-  font-size: 12px;
-  min-height: 32px;
-}
-
-.bf-btn-dark:not(:disabled):hover {
-  background: #1c202c;
-}
-
 .bf-btn-outline {
   background: transparent;
   color: var(--ink);
   border: 1px solid var(--ink);
-  border-radius: 200px;
 }
-
 .bf-btn-outline:not(:disabled):hover {
   background: var(--tint);
 }
-
 .bf-btn-ghost {
   background: transparent;
-  color: var(--ink);
-  border: none;
-  padding: 0;
-  text-decoration: none;
-}
-
-.bf-btn-ghost:not(:disabled):hover {
-  text-decoration: underline;
-}
-
-.start-close .bf-btn-ghost,
-.start-close .text-button {
   color: var(--muted);
+  border: none;
   min-height: 28px;
   padding: 4px 8px;
   font-size: 12px;
-  cursor: pointer;
-  background: transparent;
+}
+.bf-btn-ghost:not(:disabled):hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.bf-btn-dark {
+  background: var(--brand);
+  color: var(--ink);
   border: none;
+  box-shadow: var(--shadow-glow);
+}
+.bf-btn-dark:not(:disabled):hover {
+  background: var(--brand-hover);
+}
+
+.start-close .bf-btn-tertiary,
+.start-close .bf-btn-ghost {
+  color: var(--muted);
 }
 
 /* ——— Results chrome ——— */
@@ -493,15 +521,16 @@ select:focus-visible,
   margin: 8px 0 0;
   padding-top: 12px;
   border-top: 1px solid var(--rule);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
   text-align: center;
-  color: var(--muted-gray);
+  color: var(--muted);
 }
 
 .score-meta {
   margin: 2px 0 0;
   font-size: 11px;
+  color: var(--muted);
 }
 
 .overview-unscored .score-hero-unscored {
@@ -656,12 +685,6 @@ select:focus-visible,
   margin-top: 2px;
 }
 
-.view-issues-btn {
-  width: 100%;
-  min-height: 44px;
-  font-size: 14px;
-}
-
 .overview-top-issues {
   display: flex;
   flex-direction: column;
@@ -714,8 +737,8 @@ select:focus-visible,
 }
 
 .category-scores-title {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--ink);
 }
@@ -809,6 +832,7 @@ select:focus-visible,
   margin: 4px 0 0;
   font-size: 13px;
   font-weight: 700;
+  color: var(--ink);
 }
 
 .top-issues,
@@ -904,9 +928,10 @@ select:focus-visible,
 }
 
 .feature-card-title,
-.issue-card-title {
+.issue-card-title,
+.file-card-title {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -935,14 +960,32 @@ select:focus-visible,
   line-height: 1.2;
 }
 
+/* Quieter than severity — capability meta, not status */
 .fix-tier-auto {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--mint-tint);
+  color: #15803d;
 }
 
 .fix-tier-manual {
   background: var(--row);
   color: var(--muted);
+}
+
+.count-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--row);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .fix-tier-legend {
@@ -1013,11 +1056,8 @@ select:focus-visible,
   border-color: var(--mint);
 }
 
-.fix-all-btn {
+.quick-fixes-card .bf-btn {
   flex-shrink: 0;
-  padding: 6px 14px;
-  font-size: 12px;
-  min-height: 30px;
 }
 
 .issue-card-list {
@@ -1095,17 +1135,11 @@ select:focus-visible,
   padding: 0 8px;
   border-radius: 999px;
   background: var(--badge-total);
-  color: #ffffff;
+  color: var(--paper);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
-}
-
-.view-all-btn {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 4px;
-  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ——— AI view ——— */
@@ -1638,9 +1672,6 @@ select:focus-visible,
 }
 
 .file-card-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1698,6 +1729,15 @@ select:focus-visible,
 .confirm-dialog h3 {
   margin: 0 0 8px;
   font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 /* ——— Fix all progress ——— */
@@ -1885,14 +1925,6 @@ select:focus-visible,
 .fix-all-footer {
   flex-shrink: 0;
   padding-top: 4px;
-}
-
-.fix-all-back-btn {
-  width: 100%;
-  min-height: 40px;
-  padding: 10px 16px;
-  font-size: 13px;
-  border-radius: 10px;
 }
 
 .sr-only {

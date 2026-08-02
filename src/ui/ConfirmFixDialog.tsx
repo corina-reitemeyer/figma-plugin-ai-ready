@@ -1,6 +1,7 @@
 import { h } from 'preact'
 
 import { Issue } from '../shared/types'
+import { Button } from './Button'
 import { SafeText } from './SafeText'
 
 type ConfirmFixDialogProps = {
@@ -42,18 +43,13 @@ export function ConfirmFixDialog({
         <SafeText value={detail} maxLength={1000} />
       </p>
       <p className="muted">This change can be undone with Figma’s Undo.</p>
-      <div className="actions">
-        <button type="button" onClick={onConfirm} disabled={busy}>
+      <div className="confirm-actions">
+        <Button variant="primary" size="compact" onClick={onConfirm} disabled={busy}>
           {busy ? 'Applying…' : 'Apply fix'}
-        </button>
-        <button
-          type="button"
-          className="secondary"
-          onClick={onCancel}
-          disabled={busy}
-        >
+        </Button>
+        <Button variant="secondary" size="compact" onClick={onCancel} disabled={busy}>
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   )

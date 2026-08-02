@@ -94,14 +94,14 @@ export function StartScreen({
               />
             </div>
             <div className="start-progress-label">{progress.label}</div>
-            <Button variant="outline" fullWidth onClick={onCancel}>
+            <Button variant="secondary" fullWidth onClick={onCancel}>
               {strings.cancelScan}
             </Button>
           </div>
         ) : (
           <div className="start-controls">
             <Button
-              variant="cta"
+              variant="primary"
               fullWidth
               onClick={onScan}
               disabled={!canScan || scanning}

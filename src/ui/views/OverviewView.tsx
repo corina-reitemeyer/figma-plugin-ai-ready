@@ -11,6 +11,7 @@ import {
   ScoreBand,
   Severity
 } from '../../shared/types'
+import { Button } from '../Button'
 import { CategoryIcon, labelCategory } from '../CategoryIcon'
 import { IconChevronRight, IconHexagon, IconVariants } from '../Icon'
 import { SafeText } from '../SafeText'
@@ -136,13 +137,9 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
 
       {issueCount > 0 ? (
         <div className="overview-act">
-          <button
-            type="button"
-            className="bf-btn bf-btn-dark view-issues-btn"
-            onClick={onOpenIssues}
-          >
+          <Button variant="primary" fullWidth onClick={onOpenIssues}>
             {viewIssuesLabel}
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -261,9 +258,7 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
                       <span className="issue-card-title">
                         {strings.unusedVariablesTitle}
                       </span>
-                      <span className="severity-badge severity-info">
-                        {unusedCount}
-                      </span>
+                      <span className="count-badge">{unusedCount}</span>
                     </span>
                     <span className="issue-card-sub muted">
                       {strings.unusedVariablesBody}

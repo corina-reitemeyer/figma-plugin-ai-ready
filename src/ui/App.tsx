@@ -391,7 +391,7 @@ export function App() {
       {appState !== 'results' ? (
         <div className="start-close">
           <Button
-            variant="ghost"
+            variant="tertiary"
             onClick={function () {
               emit<CloseRequestHandler>('CLOSE_REQUEST')
             }}

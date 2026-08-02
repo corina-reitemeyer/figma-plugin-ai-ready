@@ -1,6 +1,7 @@
 import { h } from 'preact'
 
 import { Issue } from '../../shared/types'
+import { Button } from '../Button'
 import { IconCheck, IconSparkles } from '../Icon'
 import { SafeText } from '../SafeText'
 import { strings } from '../strings'
@@ -122,13 +123,9 @@ export function FixAllView({ items, phase, onBack }: FixAllViewProps) {
 
       {phase === 'done' ? (
         <div className="fix-all-footer">
-          <button
-            type="button"
-            className="bf-btn bf-btn-dark fix-all-back-btn"
-            onClick={onBack}
-          >
+          <Button variant="primary" fullWidth onClick={onBack}>
             {strings.fixAllBack}
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>

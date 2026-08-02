@@ -33,9 +33,11 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const categoryPanelId = useId()
   const panelId = `${CATEGORY_PANEL_ID}-${categoryPanelId}`
-  const topIssues = report.issues.slice(0, TOP_ISSUES_LIMIT)
-  const bandLabel = SCORE_BAND_LABELS[report.band]
   const unusedCount = report.inventory.unusedVariableCount ?? 0
+  const issueSlots =
+    unusedCount > 0 ? Math.max(0, TOP_ISSUES_LIMIT - 1) : TOP_ISSUES_LIMIT
+  const topIssues = report.issues.slice(0, issueSlots)
+  const bandLabel = SCORE_BAND_LABELS[report.band]
   const nodeCount =
     report.inventory.nodeCount ??
     report.inventory.componentCount +
@@ -44,6 +46,9 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
   const unscored = !report.scored
   const weakCategories = weakCategoryPreview(report.categories)
   const issueCount = report.issues.length
+  const hasTopRows = unusedCount > 0 || topIssues.length > 0
+  const warningHintId = `${panelId}-warning-hint`
+  const errorHintId = `${panelId}-error-hint`
   const viewIssuesLabel =
     issueCount > 0
       ? strings.viewIssuesCount.replace('{count}', String(issueCount))
@@ -102,10 +107,14 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
               className="count-action"
               onClick={onOpenIssues}
               aria-label={`${report.issueCounts.warning} ${strings.countWarnings}`}
+              aria-describedby={warningHintId}
             >
               <span className="count-value">{report.issueCounts.warning}</span>
               <span className="count-label">{strings.countWarnings}</span>
             </button>
+            <span id={warningHintId} className="count-hint" role="tooltip">
+              {strings.countWarningHint}
+            </span>
           </li>
           <li className="count count-error">
             <button
@@ -113,13 +122,16 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
               className="count-action"
               onClick={onOpenIssues}
               aria-label={`${report.issueCounts.error} ${strings.countErrors}`}
+              aria-describedby={errorHintId}
             >
               <span className="count-value">{report.issueCounts.error}</span>
               <span className="count-label">{strings.countErrors}</span>
             </button>
+            <span id={errorHintId} className="count-hint" role="tooltip">
+              {strings.countErrorHint}
+            </span>
           </li>
         </ul>
-        <p className="severity-legend muted">{strings.severityLegend}</p>
       </div>
 
       {issueCount > 0 ? (
@@ -223,34 +235,44 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
         </div>
       </div>
 
-      {unusedCount > 0 ? (
-        <button type="button" className="feature-card" onClick={onOpenIssues}>
-          <span className="feature-card-icon" aria-hidden="true">
-            <IconHexagon size={20} />
-          </span>
-          <span className="feature-card-body">
-            <span className="feature-card-title">
-              {strings.unusedVariablesTitle.replace(
-                '{count}',
-                String(unusedCount)
-              )}
-            </span>
-            <span className="feature-card-sub muted">
-              {strings.unusedVariablesBody}
-            </span>
-          </span>
-          <IconChevronRight size={16} color="var(--muted-gray)" />
-        </button>
-      ) : null}
-
       <section className="overview-top-issues" aria-labelledby="overview-top-issues-heading">
         <h3 id="overview-top-issues-heading" className="section-title">
           {strings.topIssues}
         </h3>
-        {topIssues.length === 0 ? (
+        {!hasTopRows ? (
           <p className="muted">{strings.noIssuesFound}</p>
         ) : (
           <ul className="top-issues">
+            {unusedCount > 0 ? (
+              <li>
+                <button
+                  type="button"
+                  className="issue-card"
+                  onClick={onOpenIssues}
+                >
+                  <span
+                    className="issue-card-icon cat-tokens"
+                    aria-hidden="true"
+                  >
+                    <IconHexagon size={18} />
+                  </span>
+                  <span className="issue-card-body">
+                    <span className="issue-card-title-row">
+                      <span className="issue-card-title">
+                        {strings.unusedVariablesTitle}
+                      </span>
+                      <span className="severity-badge severity-info">
+                        {unusedCount}
+                      </span>
+                    </span>
+                    <span className="issue-card-sub muted">
+                      {strings.unusedVariablesBody}
+                    </span>
+                  </span>
+                  <IconChevronRight size={16} color="var(--muted-gray)" />
+                </button>
+              </li>
+            ) : null}
             {topIssues.map(function (issue) {
               return (
                 <li key={issue.id}>

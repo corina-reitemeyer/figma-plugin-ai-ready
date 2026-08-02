@@ -14,8 +14,6 @@ export const strings = {
   scanningDesign: 'Scanning your design…',
   reScan: 'Re-scan',
   scoreCaption: 'AI-readiness score',
-  scoreCaptionScoped:
-    'Based on naming, tokens, variants, structure, and docs we can read in this file.',
   scoreFootnote:
     'Does not include Code Connect or MCP output — verify those in Dev Mode when you hand off to an agent.',
   scoreUnscoredTitle: 'Nothing auditable in this scope',

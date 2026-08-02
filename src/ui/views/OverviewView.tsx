@@ -69,7 +69,6 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
         />
         <p className={`band-label band-${report.band}`}>{bandLabel}</p>
         <p className="score-caption">{strings.scoreCaption}</p>
-        <p className="score-scope muted">{strings.scoreCaptionScoped}</p>
         <p className="score-meta muted">
           {formatScanScopeLabel(report, nodeCount)} ·{' '}
           {report.inventory.componentCount} components ·{' '}

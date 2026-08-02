@@ -400,7 +400,7 @@ select:focus-visible,
 .overview {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   padding-bottom: 8px;
 }
 
@@ -409,8 +409,8 @@ select:focus-visible,
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 4px;
-  padding: 20px 0 4px;
+  gap: 2px;
+  padding: 12px 0 0;
 }
 
 .score-ring {
@@ -449,7 +449,7 @@ select:focus-visible,
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 40px;
+  font-size: 36px;
   font-weight: 700;
   line-height: 1;
   color: inherit;
@@ -478,7 +478,7 @@ select:focus-visible,
 }
 
 .band-label {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   font-size: 16px;
   font-weight: 700;
 }
@@ -490,10 +490,13 @@ select:focus-visible,
 }
 
 .score-footnote {
-  margin: 0;
-  font-size: 11px;
+  margin: 8px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 10px;
   line-height: 1.4;
   text-align: center;
+  color: var(--muted-gray);
 }
 
 .score-meta {
@@ -534,8 +537,10 @@ select:focus-visible,
 .counts {
   display: flex;
   justify-content: center;
-  gap: 36px;
+  gap: 8px;
+  list-style: none;
   margin: 0;
+  padding: 0;
 }
 
 .severity-legend {
@@ -550,17 +555,57 @@ select:focus-visible,
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  min-width: 72px;
+  min-height: 44px;
+  padding: 6px 10px;
+}
+
+.count-action {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-width: 72px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 160ms ease;
+}
+
+.count:has(.count-action) {
+  padding: 0;
+  min-height: 0;
+}
+
+.count-action:hover {
+  background: var(--row);
+}
+
+.count-action:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .count-value {
   font-size: 22px;
   font-weight: 700;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .count-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--muted);
 }
@@ -575,15 +620,144 @@ select:focus-visible,
   color: var(--error);
 }
 
+.overview-act {
+  display: flex;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.view-issues-btn {
+  width: 100%;
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.overview-top-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.category-scores-toggle {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  transition: background 160ms ease;
+}
+
+.category-scores-toggle:hover {
+  background: var(--row);
+}
+
+.category-scores-toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.category-scores-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.category-scores-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.category-scores-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.category-score-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--gauge-panel);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.category-score-chip-label {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.category-score-chip-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.category-score-chip.band-good .category-score-chip-value {
+  color: var(--mint);
+}
+.category-score-chip.band-needsWork .category-score-chip-value {
+  color: var(--warning);
+}
+.category-score-chip.band-poor .category-score-chip-value {
+  color: var(--poor);
+}
+
+.category-scores-chevron {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gauge-panel);
+}
+
+.category-scores-chevron svg {
+  transition: transform 180ms ease;
+}
+
+.category-scores-open .category-scores-chevron svg {
+  transform: rotate(90deg);
+}
+
+.category-scores-open .category-scores-toggle {
+  border-bottom: 1px solid var(--rule);
+}
+
 .category-gauges {
   list-style: none;
   margin: 0;
-  padding: 14px 10px 12px;
+  padding: 14px 12px 16px;
   display: flex;
   justify-content: space-between;
   gap: 4px;
   background: var(--gauge-panel);
-  border-radius: 16px;
 }
 
 .category-gauge {

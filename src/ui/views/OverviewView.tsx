@@ -1,12 +1,15 @@
 import { emit } from '@create-figma-plugin/utilities'
 import { h } from 'preact'
+import { useId, useState } from 'preact/hooks'
 
 import { SelectNodeRequestHandler } from '../../shared/messages'
 import {
   AuditReport,
+  CategoryResult,
   Issue,
   SCORE_BAND_LABELS,
-  ScoreBand
+  ScoreBand,
+  Severity
 } from '../../shared/types'
 import { CategoryIcon, labelCategory } from '../CategoryIcon'
 import { IconChevronRight, IconHexagon, IconVariants } from '../Icon'
@@ -19,13 +22,18 @@ type OverviewViewProps = {
   onOpenIssues: () => void
 }
 
-const RING_SIZE = 128
+const RING_SIZE = 120
 const RING_STROKE = 10
 const CAT_RING_SIZE = 52
 const CAT_RING_STROKE = 5
+const TOP_ISSUES_LIMIT = 3
+const CATEGORY_PANEL_ID = 'overview-category-scores'
 
 export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
-  const topIssues = report.issues.slice(0, 5)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const categoryPanelId = useId()
+  const panelId = `${CATEGORY_PANEL_ID}-${categoryPanelId}`
+  const topIssues = report.issues.slice(0, TOP_ISSUES_LIMIT)
   const bandLabel = SCORE_BAND_LABELS[report.band]
   const unusedCount = report.inventory.unusedVariableCount ?? 0
   const nodeCount =
@@ -34,6 +42,12 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
       report.inventory.componentSetCount +
       report.inventory.frameCount
   const unscored = !report.scored
+  const weakCategories = weakCategoryPreview(report.categories)
+  const issueCount = report.issues.length
+  const viewIssuesLabel =
+    issueCount > 0
+      ? strings.viewIssuesCount.replace('{count}', String(issueCount))
+      : strings.viewIssues
 
   if (unscored) {
     return (
@@ -77,63 +91,137 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
       </div>
 
       <div className="counts-block">
-        <p className="counts" aria-label="Pass and issue breakdown">
-          <span className="count count-passed">
+        <ul className="counts" aria-label={strings.countsAriaLabel}>
+          <li className="count count-passed">
             <span className="count-value">{report.passedChecks}</span>
             <span className="count-label">{strings.countPassed}</span>
-          </span>
-          <span className="count count-warning">
-            <span className="count-value">{report.issueCounts.warning}</span>
-            <span className="count-label">{strings.countWarnings}</span>
-          </span>
-          <span className="count count-error">
-            <span className="count-value">{report.issueCounts.error}</span>
-            <span className="count-label">{strings.countErrors}</span>
-          </span>
-        </p>
+          </li>
+          <li className="count count-warning">
+            <button
+              type="button"
+              className="count-action"
+              onClick={onOpenIssues}
+              aria-label={`${report.issueCounts.warning} ${strings.countWarnings}`}
+            >
+              <span className="count-value">{report.issueCounts.warning}</span>
+              <span className="count-label">{strings.countWarnings}</span>
+            </button>
+          </li>
+          <li className="count count-error">
+            <button
+              type="button"
+              className="count-action"
+              onClick={onOpenIssues}
+              aria-label={`${report.issueCounts.error} ${strings.countErrors}`}
+            >
+              <span className="count-value">{report.issueCounts.error}</span>
+              <span className="count-label">{strings.countErrors}</span>
+            </button>
+          </li>
+        </ul>
         <p className="severity-legend muted">{strings.severityLegend}</p>
       </div>
 
-      <ul className="category-gauges" aria-label="Category scores">
-        {report.categories.map(function (category) {
-          if (!category.applicable) {
-            return (
-              <li key={category.category} className="category-gauge">
-                <div
-                  className="score-ring score-ring-compact band-unscored"
-                  style={{ width: CAT_RING_SIZE, height: CAT_RING_SIZE }}
-                  aria-label={`${labelCategory(category.category)} not applicable`}
-                >
-                  <span className="score-number score-number-na">
-                    {strings.categoryNotApplicable}
-                  </span>
-                </div>
-                <span className="category-gauge-label">
-                  {labelCategory(category.category)}
-                </span>
-              </li>
-            )
-          }
+      {issueCount > 0 ? (
+        <div className="overview-act">
+          <button
+            type="button"
+            className="bf-btn bf-btn-dark view-issues-btn"
+            onClick={onOpenIssues}
+          >
+            {viewIssuesLabel}
+          </button>
+        </div>
+      ) : null}
 
-          const band = bandFor(category.score)
-          return (
-            <li key={category.category} className="category-gauge">
-              <ScoreRing
-                score={category.score}
-                band={band}
-                size={CAT_RING_SIZE}
-                stroke={CAT_RING_STROKE}
-                compact
-              />
-              <span className="category-gauge-label">
-                {labelCategory(category.category)}
+      <div
+        className={
+          categoriesOpen
+            ? 'category-scores category-scores-open'
+            : 'category-scores'
+        }
+      >
+        <button
+          type="button"
+          className="category-scores-toggle"
+          aria-expanded={categoriesOpen}
+          aria-controls={panelId}
+          onClick={function () {
+            setCategoriesOpen(!categoriesOpen)
+          }}
+        >
+          <span className="category-scores-heading">
+            <span className="category-scores-title">
+              {strings.categoryScores}
+            </span>
+            {!categoriesOpen && weakCategories.length > 0 ? (
+              <span className="category-scores-chips">
+                {weakCategories.map(function (category) {
+                  const band = bandFor(category.score)
+                  return (
+                    <span
+                      key={category.category}
+                      className={`category-score-chip band-${band}`}
+                    >
+                      <span className="category-score-chip-label">
+                        {labelCategory(category.category)}
+                      </span>
+                      <span className="category-score-chip-value">
+                        {category.score}
+                      </span>
+                    </span>
+                  )
+                })}
               </span>
-            </li>
-          )
-        })}
-      </ul>
+            ) : null}
+          </span>
+          <span className="category-scores-chevron" aria-hidden="true">
+            <IconChevronRight size={14} color="var(--muted-gray)" />
+          </span>
+        </button>
+        <div id={panelId} hidden={!categoriesOpen}>
+          {categoriesOpen ? (
+            <ul className="category-gauges" aria-label={strings.categoryScores}>
+              {report.categories.map(function (category) {
+                if (!category.applicable) {
+                  return (
+                    <li key={category.category} className="category-gauge">
+                      <div
+                        className="score-ring score-ring-compact band-unscored"
+                        style={{ width: CAT_RING_SIZE, height: CAT_RING_SIZE }}
+                        aria-label={`${labelCategory(category.category)} not applicable`}
+                      >
+                        <span className="score-number score-number-na">
+                          {strings.categoryNotApplicable}
+                        </span>
+                      </div>
+                      <span className="category-gauge-label">
+                        {labelCategory(category.category)}
+                      </span>
+                    </li>
+                  )
+                }
 
-      <p className="score-footnote muted">{strings.scoreFootnote}</p>
+                const band = bandFor(category.score)
+                return (
+                  <li key={category.category} className="category-gauge">
+                    <ScoreRing
+                      score={category.score}
+                      band={band}
+                      size={CAT_RING_SIZE}
+                      stroke={CAT_RING_STROKE}
+                      compact
+                    />
+                    <span className="category-gauge-label">
+                      {labelCategory(category.category)}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null}
+        </div>
+      </div>
 
       {unusedCount > 0 ? (
         <button type="button" className="feature-card" onClick={onOpenIssues}>
@@ -142,42 +230,47 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
           </span>
           <span className="feature-card-body">
             <span className="feature-card-title">
-              Unused variables · ({unusedCount})
+              {strings.unusedVariablesTitle.replace(
+                '{count}',
+                String(unusedCount)
+              )}
             </span>
             <span className="feature-card-sub muted">
-              Set up in this file but not used here.
+              {strings.unusedVariablesBody}
             </span>
           </span>
           <IconChevronRight size={16} color="var(--muted-gray)" />
         </button>
       ) : null}
 
-      <h3 className="section-title">Top issues</h3>
-      {topIssues.length === 0 ? (
-        <p className="muted">No issues found in this scan.</p>
-      ) : (
-        <ul className="top-issues">
-          {topIssues.map(function (issue) {
-            return (
-              <li key={issue.id}>
-                <IssueCard issue={issue} />
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      <section className="overview-top-issues" aria-labelledby="overview-top-issues-heading">
+        <h3 id="overview-top-issues-heading" className="section-title">
+          {strings.topIssues}
+        </h3>
+        {topIssues.length === 0 ? (
+          <p className="muted">{strings.noIssuesFound}</p>
+        ) : (
+          <ul className="top-issues">
+            {topIssues.map(function (issue) {
+              return (
+                <li key={issue.id}>
+                  <IssueCard issue={issue} />
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
-      {report.issues.length > 0 ? (
-        <button
-          type="button"
-          className="bf-btn bf-btn-outline view-all-btn"
-          onClick={onOpenIssues}
-        >
-          View all {report.issues.length} issues
-        </button>
-      ) : null}
+      <p className="score-footnote muted">{strings.scoreFootnote}</p>
     </div>
   )
+}
+
+function severityLabel(severity: Severity): string {
+  if (severity === 'error') return strings.severityError
+  if (severity === 'warning') return strings.severityWarning
+  return strings.severityInfo
 }
 
 function IssueCard({ issue }: { issue: Issue }) {
@@ -198,8 +291,13 @@ function IssueCard({ issue }: { issue: Issue }) {
         <CategoryIcon category={issue.category} />
       </span>
       <span className="issue-card-body">
-        <span className="issue-card-title">
-          <SafeText value={issue.ruleLabel} />
+        <span className="issue-card-title-row">
+          <span className="issue-card-title">
+            <SafeText value={issue.ruleLabel} />
+          </span>
+          <span className={`severity-badge severity-${issue.severity}`}>
+            {severityLabel(issue.severity)}
+          </span>
         </span>
         <span className="issue-card-sub muted">
           <SafeText value={issue.message} />
@@ -267,6 +365,21 @@ function bandFor(score: number): ScoreBand {
   if (score >= 90) return 'good'
   if (score >= 50) return 'needsWork'
   return 'poor'
+}
+
+/** Collapsed preview: weakest applicable categories under the “good” band. */
+function weakCategoryPreview(
+  categories: readonly CategoryResult[]
+): CategoryResult[] {
+  return categories
+    .filter(function (category) {
+      return category.applicable && category.score < 90
+    })
+    .slice()
+    .sort(function (a, b) {
+      return a.score - b.score
+    })
+    .slice(0, 3)
 }
 
 function formatRecency(iso: string): string {

@@ -76,20 +76,23 @@ export function OverviewView({ report, onOpenIssues }: OverviewViewProps) {
         </p>
       </div>
 
-      <p className="counts" aria-label="Pass and issue breakdown">
-        <span className="count count-passed">
-          <span className="count-value">{report.passedChecks}</span>
-          <span className="count-label">Passed</span>
-        </span>
-        <span className="count count-warning">
-          <span className="count-value">{report.issueCounts.warning}</span>
-          <span className="count-label">Warnings</span>
-        </span>
-        <span className="count count-error">
-          <span className="count-value">{report.issueCounts.error}</span>
-          <span className="count-label">Errors</span>
-        </span>
-      </p>
+      <div className="counts-block">
+        <p className="counts" aria-label="Pass and issue breakdown">
+          <span className="count count-passed">
+            <span className="count-value">{report.passedChecks}</span>
+            <span className="count-label">{strings.countPassed}</span>
+          </span>
+          <span className="count count-warning">
+            <span className="count-value">{report.issueCounts.warning}</span>
+            <span className="count-label">{strings.countWarnings}</span>
+          </span>
+          <span className="count count-error">
+            <span className="count-value">{report.issueCounts.error}</span>
+            <span className="count-label">{strings.countErrors}</span>
+          </span>
+        </p>
+        <p className="severity-legend muted">{strings.severityLegend}</p>
+      </div>
 
       <ul className="category-gauges" aria-label="Category scores">
         {report.categories.map(function (category) {

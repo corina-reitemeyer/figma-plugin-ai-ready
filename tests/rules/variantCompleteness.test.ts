@@ -27,7 +27,7 @@ function mockSet(
 }
 
 describe('variantCompletenessRule', () => {
-  it('flags missing combinations', () => {
+  it('flags missing combinations as errors', () => {
     const node = mockSet(
       { Size: ['S', 'M'], State: ['Default', 'Hover'] },
       [{ Size: 'S', State: 'Default' }]
@@ -37,6 +37,17 @@ describe('variantCompletenessRule', () => {
       publishStatusByNodeId: new Map()
     })
     expect(results[0]?.message).toMatch(/3 variant combination/)
+    expect(results[0]?.severity).toBe('error')
+  })
+
+  it('flags component sets with no variant properties as errors', () => {
+    const node = mockSet({}, [])
+    const results = variantCompletenessRule.run(node, {
+      mutedRuleIds: new Set(),
+      publishStatusByNodeId: new Map()
+    })
+    expect(results[0]?.severity).toBe('error')
+    expect(results[0]?.message).toMatch(/no variant properties/)
   })
 
   it('passes a complete matrix', () => {

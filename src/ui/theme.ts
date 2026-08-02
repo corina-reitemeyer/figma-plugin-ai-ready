@@ -24,6 +24,8 @@ export const semantic = {
   errorBg: '#fbe4e1',
   warning: '#ff9725',
   warningBg: '#fff4e3',
+  /** Score band “poor” — distinct from severity error. */
+  poor: '#c2410c',
   info: color.mutedGray,
   infoBg: color.row,
   good: color.mint,

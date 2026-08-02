@@ -9,7 +9,7 @@ export const namingRule: Rule = {
   label: 'Clear names',
   category: 'naming',
   targetTypes: ['COMPONENT', 'COMPONENT_SET', 'FRAME', 'GROUP'],
-  severity: 'warning',
+  severity: 'error',
   mutable: false,
   rationale:
     'A clear name tells an AI what this layer is for — like “Button” or “Checkout header” instead of “Frame 12”.',
@@ -22,12 +22,14 @@ export const namingRule: Rule = {
 
     if (NAMING.copyOfPattern.test(name) || NAMING.defaultNamePattern.test(name)) {
       const suggestedName = suggestPascalName(name)
+      // Components/sets: agents can’t identify the layer — error.
+      // Frames/groups: still important, but screens can work without perfect names.
       results.push(
         finding({
           ruleId: RULE_ID,
           node,
           message: `“${name}” looks like a default Figma name.`,
-          severity: 'warning',
+          severity: isFrameOrGroup ? 'warning' : 'error',
           fixTier: 'auto',
           autofixId: 'rename-convention',
           autofixPayload: { suggestedName },

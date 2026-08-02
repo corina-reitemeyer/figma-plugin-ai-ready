@@ -15,6 +15,8 @@
   --error: #c53030;
   --warning: #ff9725;
   --warning-ink: #a15c00;
+  /* Score band “poor” — distinct from severity error red */
+  --poor: #c2410c;
   --focus: #282e3e;
   --gauge-track: #f3efe6;
   --gauge-panel: #f3f4f8;
@@ -439,7 +441,7 @@ select:focus-visible,
   stroke: var(--warning);
 }
 .score-ring.band-poor .score-ring-progress {
-  stroke: var(--error);
+  stroke: var(--poor);
 }
 
 .score-number {
@@ -465,7 +467,7 @@ select:focus-visible,
   color: var(--warning);
 }
 .band-poor {
-  color: var(--error);
+  color: var(--poor);
 }
 .band-unscored {
   color: var(--muted);
@@ -522,11 +524,26 @@ select:focus-visible,
   color: var(--muted);
 }
 
+.counts-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
 .counts {
   display: flex;
   justify-content: center;
   gap: 36px;
   margin: 0;
+}
+
+.severity-legend {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+  max-width: 280px;
 }
 
 .count {
@@ -1206,13 +1223,36 @@ select:focus-visible,
   min-width: 52px;
 }
 
+.severity-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
 .severity-error {
   color: var(--error);
 }
 .severity-warning {
-  color: var(--warning);
+  color: var(--warning-ink);
 }
 .severity-info {
+  color: var(--muted);
+}
+
+.severity-badge.severity-error {
+  background: #fbe4e1;
+  color: var(--error);
+}
+.severity-badge.severity-warning {
+  background: #fff4e3;
+  color: var(--warning-ink);
+}
+.severity-badge.severity-info {
+  background: var(--row);
   color: var(--muted);
 }
 

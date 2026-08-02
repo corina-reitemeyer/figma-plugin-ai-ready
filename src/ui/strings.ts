@@ -19,6 +19,13 @@ export const strings = {
   scoreUnscoredTitle: 'Nothing auditable in this scope',
   scoreUnscoredBody:
     'Select a component, component set, or a frame that contains them — or scan the whole file. Selecting only an instance now resolves to its main component.',
+  severityError: 'Error',
+  severityWarning: 'Warning',
+  severityInfo: 'Info',
+  severityLegend: 'Errors block agents; warnings are recommended.',
+  countPassed: 'Passed',
+  countWarnings: 'Warnings',
+  countErrors: 'Errors',
   categoryNotApplicable: 'N/A',
   fixTierAuto: 'Auto-fix',
   fixTierManual: 'Manual',

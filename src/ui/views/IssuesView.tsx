@@ -3,7 +3,7 @@ import { h } from 'preact'
 import { useMemo, useState } from 'preact/hooks'
 
 import { SelectNodeRequestHandler } from '../../shared/messages'
-import { AuditReport, Issue, RuleCategory } from '../../shared/types'
+import { AuditReport, Issue, RuleCategory, Severity } from '../../shared/types'
 import { CategoryIcon, labelCategory } from '../CategoryIcon'
 import { IconChevronRight, IconSparkles } from '../Icon'
 import { SafeText } from '../SafeText'
@@ -35,6 +35,12 @@ function issueLocation(issue: Issue): string {
     return `${issue.nodeName} — Page: ${issue.pageName}`
   }
   return issue.nodeName
+}
+
+function severityLabel(severity: Severity): string {
+  if (severity === 'error') return strings.severityError
+  if (severity === 'warning') return strings.severityWarning
+  return strings.severityInfo
 }
 
 export function IssuesView({
@@ -165,6 +171,11 @@ export function IssuesView({
                       <span className="issue-card-title-row">
                         <span className="issue-card-title">
                           <SafeText value={issue.ruleLabel} />
+                        </span>
+                        <span
+                          className={`severity-badge severity-${issue.severity}`}
+                        >
+                          {severityLabel(issue.severity)}
                         </span>
                         <span
                           className={

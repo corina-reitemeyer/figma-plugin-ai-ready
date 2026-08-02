@@ -29,12 +29,13 @@ describe('suggestPascalName', () => {
 })
 
 describe('namingRule', () => {
-  it('flags default component names with autofix payload', () => {
+  it('flags default component names as errors with autofix payload', () => {
     const results = namingRule.run(mockComponent('Component 1'), {
       mutedRuleIds: new Set(),
       publishStatusByNodeId: new Map()
     })
     expect(results.length).toBeGreaterThan(0)
+    expect(results[0]?.severity).toBe('error')
     expect(results[0]?.autofixId).toBe('rename-convention')
     expect(results[0]?.autofixPayload?.suggestedName).toBeTruthy()
   })
@@ -47,16 +48,25 @@ describe('namingRule', () => {
     expect(results).toEqual([])
   })
 
-  it('flags default frame names but allows sentence-case screens', () => {
+  it('flags default frame names as warnings but allows sentence-case screens', () => {
     const ctx = {
       mutedRuleIds: new Set(),
       publishStatusByNodeId: new Map()
     }
     const defaultFrame = namingRule.run(mockFrame('Frame 12'), ctx)
     expect(defaultFrame[0]?.autofixId).toBe('rename-convention')
+    expect(defaultFrame[0]?.severity).toBe('warning')
 
     const screen = namingRule.run(mockFrame('Checkout header'), ctx)
     expect(screen).toEqual([])
+  })
+
+  it('flags non-conventional component names as warnings', () => {
+    const results = namingRule.run(mockComponent('my button'), {
+      mutedRuleIds: new Set(),
+      publishStatusByNodeId: new Map()
+    })
+    expect(results[0]?.severity).toBe('warning')
   })
 
   it('does not read property definitions on variant components', () => {

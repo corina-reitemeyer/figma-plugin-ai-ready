@@ -39,7 +39,7 @@ export const variantCompletenessRule: Rule = {
   label: 'Missing variants',
   category: 'variants',
   targetTypes: ['COMPONENT_SET'],
-  severity: 'warning',
+  severity: 'error',
   mutable: false,
   rationale:
     'Variant properties (like Size and State) should cover every combination you actually need. That matrix is what AI and code tools use as the component’s options.',
@@ -62,7 +62,7 @@ export const variantCompletenessRule: Rule = {
           ruleId: RULE_ID,
           node,
           message: 'This component set has no variant properties yet.',
-          severity: 'warning',
+          severity: 'error',
           fixHint:
             'Add properties like Size or State so the set clearly lists the options designers and AI can choose from.'
         })
@@ -117,7 +117,7 @@ export const variantCompletenessRule: Rule = {
         ruleId: RULE_ID,
         node,
         message: `${missing.length} variant combination(s) are missing (for example ${preview}).`,
-        severity: 'warning',
+        severity: 'error',
         fixHint:
           'Add the missing variants in the set, or remove property values you do not need.'
       })
